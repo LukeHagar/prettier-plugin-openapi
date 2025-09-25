@@ -200,5 +200,5 @@ MIT License - see LICENSE file for details.
 ## Related Projects
 
 - [Prettier](https://prettier.io/) - The core formatter
-- [OpenAPI Specification](https://swagger.io/specification/) - The OpenAPI specification
+- [OpenAPI Specification](https://spec.openapis.org/oas/v3.1.0.html) - The OpenAPI specification
 - [Swagger](https://swagger.io/) - API development tools
