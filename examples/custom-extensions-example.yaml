@@ -1,0 +1,156 @@
+# Example OpenAPI file with custom extensions
+# This file demonstrates how custom extensions are handled
+
+openapi: 3.0.0
+info:
+  title: API with Custom Extensions
+  description: This API demonstrates custom extension handling
+  version: 1.0.0
+  x-api-id: "api-12345"  # Custom extension
+  x-version-info: "v1.0.0-beta"  # Custom extension
+  contact:
+    name: API Team
+    email: api@example.com
+    x-team-lead: "John Doe"  # Custom extension
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+    x-license-version: "3.0"  # Custom extension
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+    x-server-region: "us-east-1"  # Custom extension
+    x-load-balancer: "nginx"  # Custom extension
+    variables:
+      environment:
+        default: production
+        x-env-config: "prod-config"  # Custom extension
+paths:
+  /users:
+    get:
+      tags:
+        - users
+      summary: Get all users
+      description: Retrieve a list of all users
+      operationId: getUsers
+      x-rate-limit: 100  # Custom extension
+      x-custom-auth: "bearer"  # Custom extension
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of users to return
+          required: false
+          schema:
+            type: integer
+            x-validation: "positive"  # Custom extension
+            x-custom-format: "int32"  # Custom extension
+          x-validation: "max:100"  # Custom extension
+      responses:
+        '200':
+          description: Successful response
+          x-response-time: "50ms"  # Custom extension
+          x-cache-info: "ttl:3600"  # Custom extension
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+          x-error-code: "INVALID_REQUEST"  # Custom extension
+    post:
+      tags:
+        - users
+      summary: Create a new user
+      description: Create a new user in the system
+      operationId: createUser
+      x-rate-limit: 50  # Custom extension
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: User created successfully
+          x-response-time: "100ms"  # Custom extension
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+components:
+  x-custom-schemas: "enhanced"  # Custom extension
+  schemas:
+    User:
+      type: object
+      x-custom-type: "entity"  # Custom extension
+      required:
+        - id
+        - name
+        - email
+      properties:
+        id:
+          type: integer
+          format: int64
+          x-validation-rules: "unique,positive"  # Custom extension
+        name:
+          type: string
+          x-validation-rules: "min:1,max:100"  # Custom extension
+        email:
+          type: string
+          format: email
+          x-validation-rules: "email,unique"  # Custom extension
+        x-custom-fields:  # Custom extension
+          type: object
+          description: Additional custom fields
+    Error:
+      type: object
+      x-custom-type: "error"  # Custom extension
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          x-error-category: "system"  # Custom extension
+        message:
+          type: string
+          x-error-severity: "high"  # Custom extension
+  responses:
+    NotFound:
+      description: Resource not found
+      x-response-time: "10ms"  # Custom extension
+      x-cache-info: "no-cache"  # Custom extension
+  parameters:
+    LimitParam:
+      name: limit
+      in: query
+      description: Maximum number of items to return
+      required: false
+      schema:
+        type: integer
+        x-validation: "positive"  # Custom extension
+      x-validation: "max:1000"  # Custom extension
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      x-auth-provider: "custom"  # Custom extension
+      x-token-info: "jwt-v2"  # Custom extension
+  x-api-metadata: "enhanced"  # Custom extension
+tags:
+  - name: users
+    description: User management operations
+    x-tag-color: "#3498db"  # Custom extension
+    x-tag-priority: "high"  # Custom extension
+  - name: authentication
+    description: Authentication operations
+    x-tag-color: "#e74c3c"  # Custom extension
+    x-tag-priority: "critical"  # Custom extension
+externalDocs:
+  description: API Documentation
+  url: https://docs.example.com/api
+  x-doc-version: "1.0"  # Custom extension
+  x-doc-language: "en"  # Custom extension
