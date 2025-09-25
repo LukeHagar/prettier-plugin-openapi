@@ -1,6 +1,7 @@
 import { Plugin } from 'prettier';
 import * as yaml from 'js-yaml';
 import { getVendorExtensions } from './extensions';
+
 import {
   TOP_LEVEL_KEYS,
   INFO_KEYS,
@@ -17,7 +18,6 @@ import {
   SERVER_VARIABLE_KEYS,
   TAG_KEYS,
   EXTERNAL_DOCS_KEYS,
-  SWAGGER_2_0_KEYS,
   WEBHOOK_KEYS
 } from './keys';
 
@@ -37,25 +37,6 @@ interface OpenAPIPluginOptions {
     printWidth?: number;
 }
 
-// ============================================================================
-// KEY ORDERING CONFIGURATION
-// ============================================================================
-// Customize the order of keys by modifying these arrays and maps
-
-
-
-
-// ============================================================================
-// CUSTOM EXTENSION CONFIGURATION
-// ============================================================================
-// Add your custom extensions here with their desired positions
-
-// Base custom extensions for top-level OpenAPI keys
-const BASE_CUSTOM_TOP_LEVEL_EXTENSIONS: Record<string, number> = {
-    // Example: 'x-custom-field': 2, // Will be placed after 'info' (position 1)
-    // Example: 'x-api-version': 0,  // Will be placed before 'openapi'
-};
-
 // Load vendor extensions
 let vendorExtensions: any = {};
 
@@ -67,86 +48,109 @@ try {
     vendorExtensions = {};
 }
 
-// Use base extensions as default
-const CUSTOM_TOP_LEVEL_EXTENSIONS = BASE_CUSTOM_TOP_LEVEL_EXTENSIONS;
+// ============================================================================
+// FILE DETECTION FUNCTIONS
+// ============================================================================
 
-// Custom extensions for info section
-const CUSTOM_INFO_EXTENSIONS: Record<string, number> = {
-    // Example: 'x-api-id': 1,      // Will be placed after 'title' (position 0)
-    // Example: 'x-version-info': 3, // Will be placed after 'version' (position 2)
-};
+/**
+ * Detects if a file is an OpenAPI-related file based on content and structure
+ */
+function isOpenAPIFile(content: any, filePath?: string): boolean {
+    if (!content || typeof content !== 'object') {
+        return false;
+    }
 
-// Custom extensions for components section
-const CUSTOM_COMPONENTS_EXTENSIONS: Record<string, number> = {
-    // Example: 'x-custom-schemas': 0, // Will be placed before 'schemas'
-    // Example: 'x-api-metadata': 9,   // Will be placed after 'callbacks'
-};
+    // Check for root-level OpenAPI indicators
+    if (content.openapi || content.swagger) {
+        return true;
+    }
 
-// Custom extensions for operation objects
-const CUSTOM_OPERATION_EXTENSIONS: Record<string, number> = {
-    // Example: 'x-rate-limit': 5,    // Will be placed after 'parameters' (position 4)
-    // Example: 'x-custom-auth': 10,   // Will be placed after 'servers' (position 9)
-};
+    // Check for component-like structures
+    if (content.components || content.definitions || content.parameters || content.responses || content.securityDefinitions) {
+        return true;
+    }
 
-// Custom extensions for parameter objects
-const CUSTOM_PARAMETER_EXTENSIONS: Record<string, number> = {
-    // Example: 'x-validation': 3,    // Will be placed after 'description' (position 2)
-    // Example: 'x-custom-format': 11, // Will be placed after 'examples' (position 10)
-};
+    // Check for path-like structures (operations)
+    if (content.paths || isPathObject(content)) {
+        return true;
+    }
 
-// Custom extensions for schema objects
-const CUSTOM_SCHEMA_EXTENSIONS: Record<string, number> = {
-    // Example: 'x-custom-type': 0,   // Will be placed before 'type'
-    // Example: 'x-validation-rules': 30, // Will be placed after 'deprecated' (position 29)
-};
+    // Check file path patterns for common OpenAPI file structures
+    // Only accept files in OpenAPI-related directories
+    if (filePath) {
+        const path = filePath.toLowerCase();
+        
+        // Check for component directory patterns
+        if (path.includes('/components/') || 
+            path.includes('/schemas/') || 
+            path.includes('/parameters/') || 
+            path.includes('/responses/') || 
+            path.includes('/requestbodies/') || 
+            path.includes('/headers/') || 
+            path.includes('/examples/') || 
+            path.includes('/securityschemes/') || 
+            path.includes('/links/') || 
+            path.includes('/callbacks/') ||
+            path.includes('/webhooks/') ||
+            path.includes('/paths/')) {
+            return true;
+        }
+    }
 
-// Custom extensions for response objects
-const CUSTOM_RESPONSE_EXTENSIONS: Record<string, number> = {
-    // Example: 'x-response-time': 1,  // Will be placed after 'description' (position 0)
-    // Example: 'x-cache-info': 4,     // Will be placed after 'links' (position 3)
-};
+    // Check for schema-like structures (but be more strict)
+    if (isSchemaObject(content)) {
+        return true;
+    }
 
-// Custom extensions for security scheme objects
-const CUSTOM_SECURITY_SCHEME_EXTENSIONS: Record<string, number> = {
-    // Example: 'x-auth-provider': 1,  // Will be placed after 'type' (position 0)
-    // Example: 'x-token-info': 7,     // Will be placed after 'openIdConnectUrl' (position 6)
-};
+    // Check for parameter-like structures
+    if (isParameterObject(content)) {
+        return true;
+    }
 
-// Custom extensions for server objects
-const CUSTOM_SERVER_EXTENSIONS: Record<string, number> = {
-    // Example: 'x-server-region': 1,  // Will be placed after 'url' (position 0)
-    // Example: 'x-load-balancer': 3,   // Will be placed after 'variables' (position 2)
-};
+    // Check for response-like structures
+    if (isResponseObject(content)) {
+        return true;
+    }
 
-// Custom extensions for tag objects
-const CUSTOM_TAG_EXTENSIONS: Record<string, number> = {
-    // Example: 'x-tag-color': 1,      // Will be placed after 'name' (position 0)
-    // Example: 'x-tag-priority': 3,   // Will be placed after 'externalDocs' (position 2)
-};
+    // Check for security scheme-like structures
+    if (isSecuritySchemeObject(content)) {
+        return true;
+    }
 
-// Custom extensions for external docs objects
-const CUSTOM_EXTERNAL_DOCS_EXTENSIONS: Record<string, number> = {
-    // Example: 'x-doc-version': 0,    // Will be placed before 'description'
-    // Example: 'x-doc-language': 2,   // Will be placed after 'url' (position 1)
-};
+    // Check for server-like structures
+    if (isServerObject(content)) {
+        return true;
+    }
 
-// Custom extensions for webhook objects (OpenAPI 3.1+)
-const CUSTOM_WEBHOOK_EXTENSIONS: Record<string, number> = {
-    // Example: 'x-webhook-secret': 5, // Will be placed after 'parameters' (position 4)
-    // Example: 'x-webhook-retry': 10, // Will be placed after 'servers' (position 9)
-};
+    // Check for tag-like structures
+    if (isTagObject(content)) {
+        return true;
+    }
 
-// Custom extensions for Swagger 2.0 definitions
-const CUSTOM_DEFINITIONS_EXTENSIONS: Record<string, number> = {
-    // Example: 'x-model-version': 0,  // Will be placed before 'type'
-    // Example: 'x-model-category': 30, // Will be placed after 'deprecated' (position 29)
-};
+    // Check for external docs-like structures
+    if (isExternalDocsObject(content)) {
+        return true;
+    }
 
-// Custom extensions for Swagger 2.0 security definitions
-const CUSTOM_SECURITY_DEFINITIONS_EXTENSIONS: Record<string, number> = {
-    // Example: 'x-auth-provider': 1,  // Will be placed after 'type' (position 0)
-    // Example: 'x-token-info': 7,     // Will be placed after 'scopes' (position 6)
-};
+    // Check for webhook-like structures
+    if (isWebhookObject(content)) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Detects if an object represents a path with operations
+ */
+function isPathObject(obj: any): boolean {
+    if (!obj || typeof obj !== 'object') {
+        return false;
+    }
+
+    const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'];
+    return Object.keys(obj).some(key => httpMethods.includes(key.toLowerCase()));
+}
 
 // Map of path patterns to their key ordering
 const KEY_ORDERING_MAP: Record<string, readonly string[]> = {
@@ -180,34 +184,25 @@ const OPERATION_KEY_ORDERING_MAP: Record<string, readonly string[]> = {
     'webhook': WEBHOOK_KEYS,
 };
 
-// Map of custom extensions by context (using vendor extensions)
-const CUSTOM_EXTENSIONS_MAP: Record<string, Record<string, number>> = {
-    'top-level': { ...CUSTOM_TOP_LEVEL_EXTENSIONS, ...vendorExtensions['top-level'] },
-    'info': { ...CUSTOM_INFO_EXTENSIONS, ...vendorExtensions['info'] },
-    'components': { ...CUSTOM_COMPONENTS_EXTENSIONS, ...vendorExtensions['components'] },
-    'operation': { ...CUSTOM_OPERATION_EXTENSIONS, ...vendorExtensions['operation'] },
-    'parameter': { ...CUSTOM_PARAMETER_EXTENSIONS, ...vendorExtensions['parameter'] },
-    'schema': { ...CUSTOM_SCHEMA_EXTENSIONS, ...vendorExtensions['schema'] },
-    'response': { ...CUSTOM_RESPONSE_EXTENSIONS, ...vendorExtensions['response'] },
-    'securityScheme': { ...CUSTOM_SECURITY_SCHEME_EXTENSIONS, ...vendorExtensions['securityScheme'] },
-    'server': { ...CUSTOM_SERVER_EXTENSIONS, ...vendorExtensions['server'] },
-    'tag': { ...CUSTOM_TAG_EXTENSIONS, ...vendorExtensions['tag'] },
-    'externalDocs': { ...CUSTOM_EXTERNAL_DOCS_EXTENSIONS, ...vendorExtensions['externalDocs'] },
-    'webhook': { ...CUSTOM_WEBHOOK_EXTENSIONS, ...vendorExtensions['webhook'] },
-    'definitions': { ...CUSTOM_DEFINITIONS_EXTENSIONS, ...vendorExtensions['definitions'] },
-    'securityDefinitions': { ...CUSTOM_SECURITY_DEFINITIONS_EXTENSIONS, ...vendorExtensions['securityDefinitions'] },
-};
-
 const plugin: Plugin = {
     languages: [
         {
             name: 'openapi-json',
-            extensions: ['.openapi.json', '.swagger.json'],
+            extensions: [
+                '.openapi.json', '.swagger.json',
+                // Support for component files
+                '.json'
+            ],
             parsers: ['openapi-json-parser'],
         },
         {
             name: 'openapi-yaml',
-            extensions: ['.openapi.yaml', '.openapi.yml', '.swagger.yaml', '.swagger.yml'],
+            extensions: [
+                '.openapi.yaml', '.openapi.yml', 
+                '.swagger.yaml', '.swagger.yml',
+                // Support for component files
+                '.yaml', '.yml'
+            ],
             parsers: ['openapi-yaml-parser'],
         },
     ],
@@ -216,6 +211,12 @@ const plugin: Plugin = {
             parse: (text: string, options?: any): OpenAPINode => {
                 try {
                     const parsed = JSON.parse(text);
+                    
+                    // Check if this is an OpenAPI file
+                    if (!isOpenAPIFile(parsed, options?.filepath)) {
+                        throw new Error('Not an OpenAPI file');
+                    }
+                    
                     return {
                         type: 'openapi-json',
                         content: parsed,
@@ -239,6 +240,12 @@ const plugin: Plugin = {
                             console.warn('YAML parsing warning:', warning);
                         }
                     });
+                    
+                    // Check if this is an OpenAPI file
+                    if (!isOpenAPIFile(parsed, options?.filepath)) {
+                        throw new Error('Not an OpenAPI file');
+                    }
+                    
                     return {
                         type: 'openapi-yaml',
                         content: parsed,
@@ -297,62 +304,12 @@ function sortOpenAPIKeys(obj: any): any {
         return obj;
     }
 
+    // Get vendor extensions for top-level
+    const topLevelExtensions = vendorExtensions['top-level'] || {};
+
     const sortedKeys = Object.keys(obj).sort((a, b) => {
-        // Check for custom extensions first
-        const aCustomPos = CUSTOM_TOP_LEVEL_EXTENSIONS[a];
-        const bCustomPos = CUSTOM_TOP_LEVEL_EXTENSIONS[b];
-
-        if (aCustomPos !== undefined && bCustomPos !== undefined) {
-            return aCustomPos - bCustomPos;
-        }
-
-        if (aCustomPos !== undefined) {
-            // Check if custom position is within standard keys range
-            if (aCustomPos < TOP_LEVEL_KEYS.length) {
-                return -1; // Custom key should come before standard keys
-            }
-        }
-
-        if (bCustomPos !== undefined) {
-            // Check if custom position is within standard keys range
-            if (bCustomPos < TOP_LEVEL_KEYS.length) {
-                return 1; // Custom key should come before standard keys
-            }
-        }
-
-        const aIndex = TOP_LEVEL_KEYS.indexOf(a as any);
-        const bIndex = TOP_LEVEL_KEYS.indexOf(b as any);
-
-        // If both keys are in the order list, sort by their position
-        if (aIndex !== -1 && bIndex !== -1) {
-            return aIndex - bIndex;
-        }
-
-        // If only one key is in the order list, prioritize it
-        if (aIndex !== -1) return -1;
-        if (bIndex !== -1) return 1;
-
-        // Handle custom extensions that are positioned after standard keys
-        if (aCustomPos !== undefined) {
-            return -1; // Custom extensions come after standard keys
-        }
-        if (bCustomPos !== undefined) {
-            return 1; // Custom extensions come after standard keys
-        }
-
-        // Handle x- prefixed keys (custom extensions) vs unknown keys
-        const aIsCustomExtension = a.startsWith('x-');
-        const bIsCustomExtension = b.startsWith('x-');
-        
-        if (aIsCustomExtension && !bIsCustomExtension) {
-            return -1; // Custom extensions come before unknown keys
-        }
-        if (!aIsCustomExtension && bIsCustomExtension) {
-            return 1; // Unknown keys come after custom extensions
-        }
-
-        // For unknown keys (not in standard list or custom extensions), sort alphabetically at the end
-        return a.localeCompare(b);
+        // Use the unified sorting function
+        return sortKeys(a, b, TOP_LEVEL_KEYS, topLevelExtensions);
     });
 
     const sortedObj: any = {};
@@ -374,48 +331,11 @@ function sortOpenAPIKeysEnhanced(obj: any, path: string = ''): any {
         return obj.map((item, index) => sortOpenAPIKeysEnhanced(item, `${path}[${index}]`));
     }
 
+    const contextKey = getContextKey(path, obj);
+    const standardKeys = getStandardKeysForContext(contextKey);
+    const customExtensions = vendorExtensions[contextKey] || {};
+
     const sortedKeys = Object.keys(obj).sort((a, b) => {
-        // Get custom extensions for the current context
-        const contextKey = getContextKey(path, obj);
-        const customExtensions = CUSTOM_EXTENSIONS_MAP[contextKey] || {};
-        const aCustomPos = customExtensions[a];
-        const bCustomPos = customExtensions[b];
-
-        // Handle custom extensions first
-        if (aCustomPos !== undefined && bCustomPos !== undefined) {
-            return aCustomPos - bCustomPos;
-        }
-
-        if (aCustomPos !== undefined) {
-            // Check if custom position is within standard keys range
-            const standardKeys = getStandardKeysForContext(contextKey);
-            if (aCustomPos < standardKeys.length) {
-                return -1; // Custom key should come before standard keys
-            }
-        }
-
-        if (bCustomPos !== undefined) {
-            // Check if custom position is within standard keys range
-            const standardKeys = getStandardKeysForContext(contextKey);
-            if (bCustomPos < standardKeys.length) {
-                return 1; // Custom key should come before standard keys
-            }
-        }
-
-        // Get the key ordering for the current path
-        const currentPathOrder = KEY_ORDERING_MAP[path] || [];
-        const aIndex = currentPathOrder.indexOf(a);
-        const bIndex = currentPathOrder.indexOf(b);
-
-        // If both keys are in the order list, sort by their position
-        if (aIndex !== -1 && bIndex !== -1) {
-            return aIndex - bIndex;
-        }
-
-        // If only one key is in the order list, prioritize it
-        if (aIndex !== -1) return -1;
-        if (bIndex !== -1) return 1;
-
         // Special handling for paths (sort by path pattern)
         if (path === 'paths') {
             return sortPathKeys(a, b);
@@ -426,61 +346,8 @@ function sortOpenAPIKeysEnhanced(obj: any, path: string = ''): any {
             return sortResponseCodes(a, b);
         }
 
-        // Use context-based sorting
-        if (contextKey === 'operation') {
-            return sortOperationKeysWithExtensions(a, b, CUSTOM_OPERATION_EXTENSIONS);
-        }
-
-        if (contextKey === 'parameter') {
-            return sortParameterKeysWithExtensions(a, b, CUSTOM_PARAMETER_EXTENSIONS);
-        }
-
-        if (contextKey === 'schema') {
-            return sortSchemaKeysWithExtensions(a, b, CUSTOM_SCHEMA_EXTENSIONS);
-        }
-
-        if (contextKey === 'response') {
-            return sortResponseKeysWithExtensions(a, b, CUSTOM_RESPONSE_EXTENSIONS);
-        }
-
-        if (contextKey === 'securityScheme') {
-            return sortSecuritySchemeKeysWithExtensions(a, b, CUSTOM_SECURITY_SCHEME_EXTENSIONS);
-        }
-
-        if (contextKey === 'server') {
-            return sortServerKeysWithExtensions(a, b, CUSTOM_SERVER_EXTENSIONS);
-        }
-
-        if (contextKey === 'tag') {
-            return sortTagKeysWithExtensions(a, b, CUSTOM_TAG_EXTENSIONS);
-        }
-
-        if (contextKey === 'externalDocs') {
-            return sortExternalDocsKeysWithExtensions(a, b, CUSTOM_EXTERNAL_DOCS_EXTENSIONS);
-        }
-
-        if (contextKey === 'webhook') {
-            return sortWebhookKeysWithExtensions(a, b, CUSTOM_WEBHOOK_EXTENSIONS);
-        }
-
-        if (contextKey === 'definitions') {
-            return sortDefinitionsKeysWithExtensions(a, b, CUSTOM_DEFINITIONS_EXTENSIONS);
-        }
-
-        if (contextKey === 'securityDefinitions') {
-            return sortSecurityDefinitionsKeysWithExtensions(a, b, CUSTOM_SECURITY_DEFINITIONS_EXTENSIONS);
-        }
-
-        // Handle custom extensions that are positioned after standard keys
-        if (aCustomPos !== undefined) {
-            return -1; // Custom extensions come after standard keys
-        }
-        if (bCustomPos !== undefined) {
-            return 1; // Custom extensions come after standard keys
-        }
-
-        // For unknown keys (not in standard list or custom extensions), sort alphabetically at the end
-        return a.localeCompare(b);
+        // Use the unified sorting function for all other cases
+        return sortKeys(a, b, standardKeys, customExtensions);
     });
 
     const sortedObj: any = {};
@@ -516,9 +383,7 @@ function sortResponseCodes(a: string, b: string): number {
     return a.localeCompare(b);
 }
 
-// ============================================================================
-// OBJECT TYPE DETECTION FUNCTIONS
-// ============================================================================
+//#region Object type detection functions
 
 function isOperationObject(obj: any): boolean {
     const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'];
@@ -530,7 +395,17 @@ function isParameterObject(obj: any): boolean {
 }
 
 function isSchemaObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && ('type' in obj || 'properties' in obj || '$ref' in obj);
+    if (!obj || typeof obj !== 'object') {
+        return false;
+    }
+    
+    // Check for JSON Schema keywords - be very strict
+    const hasSchemaKeywords = '$ref' in obj || 'allOf' in obj || 'oneOf' in obj || 'anyOf' in obj || 'not' in obj;
+    const hasValidType = 'type' in obj && obj.type && ['object', 'array', 'string', 'number', 'integer', 'boolean', 'null'].includes(obj.type);
+    
+    // Only return true if we have clear schema indicators
+    // Must have either schema keywords OR valid type with schema properties
+    return hasSchemaKeywords || (hasValidType && ('properties' in obj || 'items' in obj || 'enum' in obj));
 }
 
 function isResponseObject(obj: any): boolean {
@@ -559,13 +434,41 @@ function isWebhookObject(obj: any): boolean {
     return obj && typeof obj === 'object' && Object.keys(obj).some(key => httpMethods.includes(key.toLowerCase()));
 }
 
-// ============================================================================
-// SORTING FUNCTIONS USING CONFIGURATION ARRAYS
-// ============================================================================
+//#endregion
 
-function sortOperationKeys(a: string, b: string): number {
-    const aIndex = OPERATION_KEYS.indexOf(a as any);
-    const bIndex = OPERATION_KEYS.indexOf(b as any);
+//#region Unified sorting function
+/**
+ * Universal sorting function that handles all OpenAPI key sorting
+ * @param a First key to compare
+ * @param b Second key to compare
+ * @param standardKeys Array of standard keys in order
+ * @param customExtensions Custom extension positions
+ * @returns Comparison result
+ */
+function sortKeys(a: string, b: string, standardKeys: readonly string[], customExtensions: Record<string, number> = {}): number {
+    const aCustomPos = customExtensions[a];
+    const bCustomPos = customExtensions[b];
+
+    // Handle custom extensions first
+    if (aCustomPos !== undefined && bCustomPos !== undefined) {
+        return aCustomPos - bCustomPos;
+    }
+
+    if (aCustomPos !== undefined) {
+        if (aCustomPos < standardKeys.length) {
+            return -1; // Custom key should come before standard keys
+        }
+    }
+
+    if (bCustomPos !== undefined) {
+        if (bCustomPos < standardKeys.length) {
+            return 1; // Custom key should come before standard keys
+        }
+    }
+
+    // Standard sorting
+    const aIndex = standardKeys.indexOf(a);
+    const bIndex = standardKeys.indexOf(b);
 
     if (aIndex !== -1 && bIndex !== -1) {
         return aIndex - bIndex;
@@ -574,110 +477,16 @@ function sortOperationKeys(a: string, b: string): number {
     if (aIndex !== -1) return -1;
     if (bIndex !== -1) return 1;
 
+    // Handle custom extensions after standard keys
+    if (aCustomPos !== undefined) return -1;
+    if (bCustomPos !== undefined) return 1;
+
+    // For unknown keys, sort alphabetically at the end
     return a.localeCompare(b);
 }
+//#endregion
 
-function sortParameterKeys(a: string, b: string): number {
-    const aIndex = PARAMETER_KEYS.indexOf(a as any);
-    const bIndex = PARAMETER_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    return a.localeCompare(b);
-}
-
-function sortSchemaKeys(a: string, b: string): number {
-    const aIndex = SCHEMA_KEYS.indexOf(a as any);
-    const bIndex = SCHEMA_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    return a.localeCompare(b);
-}
-
-function sortResponseKeys(a: string, b: string): number {
-    const aIndex = RESPONSE_KEYS.indexOf(a as any);
-    const bIndex = RESPONSE_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    return a.localeCompare(b);
-}
-
-function sortSecuritySchemeKeys(a: string, b: string): number {
-    const aIndex = SECURITY_SCHEME_KEYS.indexOf(a as any);
-    const bIndex = SECURITY_SCHEME_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    return a.localeCompare(b);
-}
-
-function sortServerKeys(a: string, b: string): number {
-    const aIndex = SERVER_KEYS.indexOf(a as any);
-    const bIndex = SERVER_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    return a.localeCompare(b);
-}
-
-function sortTagKeys(a: string, b: string): number {
-    const aIndex = TAG_KEYS.indexOf(a as any);
-    const bIndex = TAG_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    return a.localeCompare(b);
-}
-
-function sortExternalDocsKeys(a: string, b: string): number {
-    const aIndex = EXTERNAL_DOCS_KEYS.indexOf(a as any);
-    const bIndex = EXTERNAL_DOCS_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    return a.localeCompare(b);
-}
-
-// ============================================================================
-// HELPER FUNCTIONS FOR CUSTOM EXTENSIONS
-// ============================================================================
+//#region Helper functions for custom extensions
 
 function getContextKey(path: string, obj: any): string {
     // Determine the context based on path and object properties
@@ -750,362 +559,51 @@ function getStandardKeysForContext(contextKey: string): readonly string[] {
 }
 
 // ============================================================================
-// SORTING FUNCTIONS WITH EXTENSIONS SUPPORT
+// CONTEXT-SPECIFIC SORTING FUNCTIONS (using unified sortKeys)
 // ============================================================================
 
 function sortOperationKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    const aCustomPos = customExtensions[a];
-    const bCustomPos = customExtensions[b];
-
-    // Handle custom extensions
-    if (aCustomPos !== undefined && bCustomPos !== undefined) {
-        return aCustomPos - bCustomPos;
-    }
-
-    if (aCustomPos !== undefined) {
-        if (aCustomPos < OPERATION_KEYS.length) return -1;
-    }
-
-    if (bCustomPos !== undefined) {
-        if (bCustomPos < OPERATION_KEYS.length) return 1;
-    }
-
-    // Standard sorting
-    const aIndex = OPERATION_KEYS.indexOf(a as any);
-    const bIndex = OPERATION_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    // Handle custom extensions after standard keys
-    if (aCustomPos !== undefined) return -1;
-    if (bCustomPos !== undefined) return 1;
-
-    return a.localeCompare(b);
+    return sortKeys(a, b, OPERATION_KEYS, customExtensions);
 }
 
 function sortParameterKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    const aCustomPos = customExtensions[a];
-    const bCustomPos = customExtensions[b];
-
-    if (aCustomPos !== undefined && bCustomPos !== undefined) {
-        return aCustomPos - bCustomPos;
-    }
-
-    if (aCustomPos !== undefined) {
-        if (aCustomPos < PARAMETER_KEYS.length) return -1;
-    }
-
-    if (bCustomPos !== undefined) {
-        if (bCustomPos < PARAMETER_KEYS.length) return 1;
-    }
-
-    const aIndex = PARAMETER_KEYS.indexOf(a as any);
-    const bIndex = PARAMETER_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    if (aCustomPos !== undefined) return -1;
-    if (bCustomPos !== undefined) return 1;
-
-    return a.localeCompare(b);
+    return sortKeys(a, b, PARAMETER_KEYS, customExtensions);
 }
 
 function sortSchemaKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    const aCustomPos = customExtensions[a];
-    const bCustomPos = customExtensions[b];
-
-    if (aCustomPos !== undefined && bCustomPos !== undefined) {
-        return aCustomPos - bCustomPos;
-    }
-
-    if (aCustomPos !== undefined) {
-        if (aCustomPos < SCHEMA_KEYS.length) return -1;
-    }
-
-    if (bCustomPos !== undefined) {
-        if (bCustomPos < SCHEMA_KEYS.length) return 1;
-    }
-
-    const aIndex = SCHEMA_KEYS.indexOf(a as any);
-    const bIndex = SCHEMA_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    if (aCustomPos !== undefined) return -1;
-    if (bCustomPos !== undefined) return 1;
-
-    return a.localeCompare(b);
+    return sortKeys(a, b, SCHEMA_KEYS, customExtensions);
 }
 
 function sortResponseKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    const aCustomPos = customExtensions[a];
-    const bCustomPos = customExtensions[b];
-
-    if (aCustomPos !== undefined && bCustomPos !== undefined) {
-        return aCustomPos - bCustomPos;
-    }
-
-    if (aCustomPos !== undefined) {
-        if (aCustomPos < RESPONSE_KEYS.length) return -1;
-    }
-
-    if (bCustomPos !== undefined) {
-        if (bCustomPos < RESPONSE_KEYS.length) return 1;
-    }
-
-    const aIndex = RESPONSE_KEYS.indexOf(a as any);
-    const bIndex = RESPONSE_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    if (aCustomPos !== undefined) return -1;
-    if (bCustomPos !== undefined) return 1;
-
-    return a.localeCompare(b);
+    return sortKeys(a, b, RESPONSE_KEYS, customExtensions);
 }
 
 function sortSecuritySchemeKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    const aCustomPos = customExtensions[a];
-    const bCustomPos = customExtensions[b];
-
-    if (aCustomPos !== undefined && bCustomPos !== undefined) {
-        return aCustomPos - bCustomPos;
-    }
-
-    if (aCustomPos !== undefined) {
-        if (aCustomPos < SECURITY_SCHEME_KEYS.length) return -1;
-    }
-
-    if (bCustomPos !== undefined) {
-        if (bCustomPos < SECURITY_SCHEME_KEYS.length) return 1;
-    }
-
-    const aIndex = SECURITY_SCHEME_KEYS.indexOf(a as any);
-    const bIndex = SECURITY_SCHEME_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    if (aCustomPos !== undefined) return -1;
-    if (bCustomPos !== undefined) return 1;
-
-    return a.localeCompare(b);
+    return sortKeys(a, b, SECURITY_SCHEME_KEYS, customExtensions);
 }
 
 function sortServerKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    const aCustomPos = customExtensions[a];
-    const bCustomPos = customExtensions[b];
-
-    if (aCustomPos !== undefined && bCustomPos !== undefined) {
-        return aCustomPos - bCustomPos;
-    }
-
-    if (aCustomPos !== undefined) {
-        if (aCustomPos < SERVER_KEYS.length) return -1;
-    }
-
-    if (bCustomPos !== undefined) {
-        if (bCustomPos < SERVER_KEYS.length) return 1;
-    }
-
-    const aIndex = SERVER_KEYS.indexOf(a as any);
-    const bIndex = SERVER_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    if (aCustomPos !== undefined) return -1;
-    if (bCustomPos !== undefined) return 1;
-
-    return a.localeCompare(b);
+    return sortKeys(a, b, SERVER_KEYS, customExtensions);
 }
 
 function sortTagKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    const aCustomPos = customExtensions[a];
-    const bCustomPos = customExtensions[b];
-
-    if (aCustomPos !== undefined && bCustomPos !== undefined) {
-        return aCustomPos - bCustomPos;
-    }
-
-    if (aCustomPos !== undefined) {
-        if (aCustomPos < TAG_KEYS.length) return -1;
-    }
-
-    if (bCustomPos !== undefined) {
-        if (bCustomPos < TAG_KEYS.length) return 1;
-    }
-
-    const aIndex = TAG_KEYS.indexOf(a as any);
-    const bIndex = TAG_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    if (aCustomPos !== undefined) return -1;
-    if (bCustomPos !== undefined) return 1;
-
-    return a.localeCompare(b);
+    return sortKeys(a, b, TAG_KEYS, customExtensions);
 }
 
 function sortExternalDocsKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    const aCustomPos = customExtensions[a];
-    const bCustomPos = customExtensions[b];
-
-    if (aCustomPos !== undefined && bCustomPos !== undefined) {
-        return aCustomPos - bCustomPos;
-    }
-
-    if (aCustomPos !== undefined) {
-        if (aCustomPos < EXTERNAL_DOCS_KEYS.length) return -1;
-    }
-
-    if (bCustomPos !== undefined) {
-        if (bCustomPos < EXTERNAL_DOCS_KEYS.length) return 1;
-    }
-
-    const aIndex = EXTERNAL_DOCS_KEYS.indexOf(a as any);
-    const bIndex = EXTERNAL_DOCS_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    if (aCustomPos !== undefined) return -1;
-    if (bCustomPos !== undefined) return 1;
-
-    return a.localeCompare(b);
+    return sortKeys(a, b, EXTERNAL_DOCS_KEYS, customExtensions);
 }
 
 function sortWebhookKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    const aCustomPos = customExtensions[a];
-    const bCustomPos = customExtensions[b];
-
-    if (aCustomPos !== undefined && bCustomPos !== undefined) {
-        return aCustomPos - bCustomPos;
-    }
-
-    if (aCustomPos !== undefined) {
-        if (aCustomPos < WEBHOOK_KEYS.length) return -1;
-    }
-
-    if (bCustomPos !== undefined) {
-        if (bCustomPos < WEBHOOK_KEYS.length) return 1;
-    }
-
-    const aIndex = WEBHOOK_KEYS.indexOf(a as any);
-    const bIndex = WEBHOOK_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    if (aCustomPos !== undefined) return -1;
-    if (bCustomPos !== undefined) return 1;
-
-    return a.localeCompare(b);
+    return sortKeys(a, b, WEBHOOK_KEYS, customExtensions);
 }
 
 function sortDefinitionsKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    const aCustomPos = customExtensions[a];
-    const bCustomPos = customExtensions[b];
-
-    if (aCustomPos !== undefined && bCustomPos !== undefined) {
-        return aCustomPos - bCustomPos;
-    }
-
-    if (aCustomPos !== undefined) {
-        if (aCustomPos < SCHEMA_KEYS.length) return -1;
-    }
-
-    if (bCustomPos !== undefined) {
-        if (bCustomPos < SCHEMA_KEYS.length) return 1;
-    }
-
-    const aIndex = SCHEMA_KEYS.indexOf(a as any);
-    const bIndex = SCHEMA_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    if (aCustomPos !== undefined) return -1;
-    if (bCustomPos !== undefined) return 1;
-
-    return a.localeCompare(b);
+    return sortKeys(a, b, SCHEMA_KEYS, customExtensions);
 }
 
 function sortSecurityDefinitionsKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    const aCustomPos = customExtensions[a];
-    const bCustomPos = customExtensions[b];
-
-    if (aCustomPos !== undefined && bCustomPos !== undefined) {
-        return aCustomPos - bCustomPos;
-    }
-
-    if (aCustomPos !== undefined) {
-        if (aCustomPos < SECURITY_SCHEME_KEYS.length) return -1;
-    }
-
-    if (bCustomPos !== undefined) {
-        if (bCustomPos < SECURITY_SCHEME_KEYS.length) return 1;
-    }
-
-    const aIndex = SECURITY_SCHEME_KEYS.indexOf(a as any);
-    const bIndex = SECURITY_SCHEME_KEYS.indexOf(b as any);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
-
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    if (aCustomPos !== undefined) return -1;
-    if (bCustomPos !== undefined) return 1;
-
-    return a.localeCompare(b);
+    return sortKeys(a, b, SECURITY_SCHEME_KEYS, customExtensions);
 }
 
 export default plugin;

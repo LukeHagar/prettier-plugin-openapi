@@ -2,11 +2,19 @@
   "name": "prettier-plugin-openapi",
   "version": "1.0.0",
   "description": "A Prettier plugin for formatting OpenAPI/Swagger JSON and YAML files",
+  "author": {
+    "name": "Luke Hagar",
+    "email": "lukeslakemail@gmail.com",
+    "url": "https://LukeHagar.com/"
+  },
+  "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
@@ -23,8 +31,6 @@
     "json",
     "formatting"
   ],
-  "author": "",
-  "license": "MIT",
   "peerDependencies": {
     "prettier": "^3.0.0"
   },

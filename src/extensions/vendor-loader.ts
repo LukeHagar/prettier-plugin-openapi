@@ -85,37 +85,9 @@ export function getVendorExtensions(): Record<string, Record<string, number>> {
     // Try automatic discovery first
     return loadAllVendorExtensions();
   } catch (error) {
-    console.warn('Automatic vendor discovery failed, falling back to manual list:', error);
+    console.warn('Automatic vendor discovery failed, falling back to empty extensions:', error);
     
-    // Fallback to manual list
-    const extensions: Record<string, Record<string, number>> = {};
-    
-    const vendorModules = [
-      require('./vendor/speakeasy'),
-      require('./vendor/example-usage'),
-      // Add more vendor files here as they are created
-    ];
-    
-    for (const vendorModule of vendorModules) {
-      if (vendorModule && vendorModule.extensions) {
-        for (const [context, contextFunction] of Object.entries(vendorModule.extensions)) {
-          if (typeof contextFunction === 'function') {
-            // Create context-specific before/after functions
-            const contextBefore = (key: string) => before(context as keyof ContextKeys, key);
-            const contextAfter = (key: string) => after(context as keyof ContextKeys, key);
-            
-            // Execute the function to get the extensions
-            const contextExtensions = contextFunction(contextBefore, contextAfter);
-            
-            if (!extensions[context]) {
-              extensions[context] = {};
-            }
-            Object.assign(extensions[context], contextExtensions);
-          }
-        }
-      }
-    }
-    
-    return extensions;
+    // Return empty extensions if automatic discovery fails
+    return {};
   }
 }

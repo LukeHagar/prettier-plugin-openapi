@@ -87,6 +87,7 @@ export const OPERATION_KEYS = [
     'deprecated',
     'security',
     'servers',            // OpenAPI 3.0+
+    'externalDocs',      // OpenAPI 3.0+
 ] as const;
 
 // Parameter keys in preferred order
@@ -197,8 +198,6 @@ export const SCHEMA_KEYS = [
     'contentEncoding',    // JSON Schema draft
     'contentMediaType',   // JSON Schema draft
     'contentSchema',      // JSON Schema draft
-    'unevaluatedItems',   // JSON Schema draft
-    'unevaluatedProperties', // JSON Schema draft
 ] as const;
 
 // Response keys in preferred order
