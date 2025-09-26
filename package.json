@@ -24,7 +24,6 @@
     "./browser": "./dist/browser.js",
     "./package.json": "./package.json"
   },
-  "type": "module",
   "engines": {
     "node": ">=18.0.0"
   },
