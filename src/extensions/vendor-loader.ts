@@ -4,7 +4,7 @@
  * Loads vendor extensions using static imports for ES module compatibility.
  */
 
-import { before, after, type ContextKeys } from './index.js';
+import { before, after, KeyMap, VendorExtensions } from './index.js';
 
 // Import vendor extensions statically
 import { speakeasy } from './vendor/speakeasy.js';
@@ -26,12 +26,16 @@ export interface VendorModule {
     website?: string;
     support?: string;
   }
-  extensions?: {
-    [context: string]: (before: (key: string) => number, after: (key: string) => number) => {
-      [extensionKey: string]: number;
-    };
-  }
+  extensions?: VendorExtensions
 }
+
+function getTypedEntries<T>(obj: T): [keyof T, T[keyof T]][] {
+  return Object.entries(obj as Record<string, any>) as [keyof T, T[keyof T]][];
+}
+
+export type Extensions = Record<string, Record<string, number>>
+export type ExtensionSources = Record<string, Record<string, string>>
+
 
 /**
  * Load vendor extensions using static imports
@@ -39,9 +43,9 @@ export interface VendorModule {
  * Handles failures on a per-vendor basis so one failure doesn't break others
  * Detects and alerts on extension key collisions between vendors
  */
-export function getVendorExtensions(customVendorModules?: VendorModule[]): Record<string, Record<string, number>> {
-  const extensions: Record<string, Record<string, number>> = {};
-  const extensionSources: Record<string, Record<string, string>> = {}; // Track which vendor defined each extension
+export function getVendorExtensions(customVendorModules?: VendorModule[]): Extensions {
+  const extensions: Extensions = {};
+  const extensionSources: ExtensionSources = {}; // Track which vendor defined each extension
   
   // Use custom modules for testing, or default modules for production
   const modulesToLoad = customVendorModules || vendorModules;
@@ -49,11 +53,12 @@ export function getVendorExtensions(customVendorModules?: VendorModule[]): Recor
   for (const vendorModule of modulesToLoad) {
     try {
       if (vendorModule?.extensions) {
-        for (const [context, contextFunction] of Object.entries(vendorModule.extensions)) {
+        for (const entry of getTypedEntries(vendorModule.extensions)) {
+          const [context, contextFunction] = entry;
           if (typeof contextFunction === 'function') {
             // Create context-specific before/after functions
-            const contextBefore = (key: string) => before(context as keyof ContextKeys, key);
-            const contextAfter = (key: string) => after(context as keyof ContextKeys, key);
+            const contextBefore = (key: typeof KeyMap[typeof context][number]) => before(context, key);
+            const contextAfter = (key: typeof KeyMap[typeof context][number]) => after(context, key);
             
             // Execute the function to get the extensions
             const contextExtensions = contextFunction(contextBefore, contextAfter);
@@ -67,7 +72,7 @@ export function getVendorExtensions(customVendorModules?: VendorModule[]): Recor
             }
             
             // Check for collisions before adding extensions
-            for (const [extensionKey, position] of Object.entries(contextExtensions)) {
+            for (const [extensionKey, position] of getTypedEntries(contextExtensions)) {
               if (Object.hasOwn(extensions[context], extensionKey)) {
                 const existingVendor = extensionSources[context][extensionKey];
                 const currentVendor = vendorModule.info.name;

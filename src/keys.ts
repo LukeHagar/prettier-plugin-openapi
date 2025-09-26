@@ -5,8 +5,6 @@
  * Supports Swagger 2.0, OpenAPI 3.0, 3.1, and 3.2
  */
 
-// Top-level keys in preferred order
-// Supports Swagger 2.0, OpenAPI 3.0, 3.1, and 3.2
 export const RootKeys = [
     // Version identifiers
     'swagger',           // Swagger 2.0
@@ -502,10 +500,10 @@ export const PathItemKeys = [
     'get',
     'put',
     'post',
+    'patch',
     'delete',
     'options',
     'head',
-    'patch',
     'trace',
 ] as const;
 

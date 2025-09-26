@@ -12,10 +12,18 @@ A Prettier plugin for formatting OpenAPI/Swagger JSON and YAML files with intell
 - 🎨 **Consistent Formatting**: Applies consistent indentation and line breaks
 - 🔌 **Vendor Extensions**: Programmatic loading of vendor-specific extensions
 - ⚡ **Fast**: Built with performance in mind using modern JavaScript
-- 🧪 **Comprehensive Testing**: 99 tests with 94.62% line coverage
+- 🧪 **Comprehensive Testing**: 142 tests with 95.69% line coverage
 - 🚀 **CI/CD Ready**: Automated testing, building, and publishing
 - 🔒 **Strict Validation**: Properly rejects non-OpenAPI content
-- 📊 **High Quality**: ESLint, Prettier, and TypeScript for code quality
+- 📊 **High Quality**: Biome, Prettier, and TypeScript for code quality
+
+## Current Status
+
+✅ **Production Ready**: Version 1.0.1 with comprehensive test coverage  
+✅ **Modern Tooling**: Updated to use Biome for fast linting and formatting  
+✅ **Comprehensive Testing**: 142 tests covering all major functionality  
+✅ **High Performance**: Optimized for large OpenAPI files  
+✅ **Active Development**: Regular updates and improvements
 
 ## Installation
 
@@ -133,37 +141,6 @@ The plugin automatically sorts OpenAPI keys in the recommended order:
 
 > 📖 **Complete Key Reference**: For a comprehensive reference of all keys, their ordering, and detailed reasoning, see [KEYS.md](./KEYS.md).
 
-### Top-level keys:
-1. `openapi` / `swagger`
-2. `info`
-3. `servers`
-4. `paths`
-5. `components`
-6. `security`
-7. `tags`
-8. `externalDocs`
-
-### Info section:
-1. `title`
-2. `summary`
-3. `description`
-4. `version`
-5. `termsOfService`
-6. `contact`
-7. `license`
-
-### Components section:
-1. `schemas`
-2. `responses`
-3. `parameters`
-4. `examples`
-5. `requestBodies`
-6. `headers`
-7. `securitySchemes`
-8. `links`
-9. `callbacks`
-10. `pathItems`
-
 ## Examples
 
 ### Monolithic File Structure
@@ -247,38 +224,386 @@ get:
               $ref: '../components/schemas/User.yaml'
 ```
 
-## Vendor Extensions
+## Vendor Extension Guide
 
-The plugin supports vendor-specific extensions through a programmatic loading system:
+### Adding Your Vendor Extensions
 
-### Adding Vendor Extensions
+The plugin supports a simple system for vendors to contribute custom extensions. 
 
-1. Create a TypeScript file in `src/extensions/vendor/`
-2. Export your extensions using the provided API:
+Here's how to add your vendor extensions:
+
+#### Step 1: Create Your Vendor Extension File
+
+Create a new TypeScript file in `src/extensions/vendor/your-vendor.ts`:
 
 ```typescript
-// src/extensions/vendor/my-vendor.ts
-import { defineVendorExtensions } from '../index';
+/**
+ * Your Vendor Extensions
+ * 
+ * Your vendor extensions for OpenAPI formatting.
+ * Website: https://your-vendor.com
+ */
 
-export const extensions = defineVendorExtensions({
-  'top-level': (before, after) => ({
-    'x-my-custom-field': before('info'),
-    'x-vendor-metadata': after('externalDocs')
-  }),
-  'operation': (before, after) => ({
-    'x-rate-limit': before('responses'),
-    'x-cache-ttl': after('deprecated')
-  })
+import { defineConfig } from "../index.js";
+
+export const yourVendor = defineConfig({
+  info: {
+    name: 'Your Vendor',
+    website: 'https://your-vendor.com',
+    support: 'support@your-vendor.com'
+  },
+  extensions: {
+    // Define your extensions here
+  }
 });
 ```
 
-### Automatic Discovery
+#### Step 2: Register Your Vendor
 
-Vendor extensions are automatically discovered and loaded at runtime. No manual imports required!
+Add your vendor to the vendor loader in `src/extensions/vendor-loader.ts`:
+
+```typescript
+// Import your vendor extension
+import { yourVendor } from './vendor/your-vendor.js';
+
+// Add to the vendorModules array
+const vendorModules = [
+  speakeasy, 
+  postman, 
+  redoc,
+  yourVendor  // Add your vendor here
+];
+```
+
+#### Step 3: Define Your Extensions
+
+Use the `before()` and `after()` helper functions to position your extensions relative to standard OpenAPI keys. The system now provides **full IntelliSense support** with type-safe key suggestions:
+
+```typescript
+extensions: {
+  'top-level': (before, after) => {
+    // ✅ IntelliSense shows: 'swagger', 'openapi', 'info', 'paths', etc.
+    return {
+      'x-your-vendor-sdk': before('info'),        // ✅ Type-safe: 'info' is valid
+      'x-your-vendor-auth': after('paths'),       // ✅ Type-safe: 'paths' is valid
+      // 'x-invalid': before('invalidKey'),       // ❌ TypeScript error: 'invalidKey' not valid
+    };
+  },
+  'operation': (before, after) => {
+    // ✅ IntelliSense shows: 'summary', 'operationId', 'parameters', 'responses', etc.
+    return {
+      'x-your-vendor-retries': after('parameters'), // ✅ Type-safe: 'parameters' is valid
+      'x-your-vendor-timeout': before('responses'), // ✅ Type-safe: 'responses' is valid
+    };
+  },
+  'schema': (before, after) => {
+    // ✅ IntelliSense shows: '$ref', 'title', 'type', 'format', 'example', etc.
+    return {
+      'x-your-vendor-validation': after('type'),   // ✅ Type-safe: 'type' is valid
+      'x-your-vendor-example': after('example'),    // ✅ Type-safe: 'example' is valid
+    };
+  }
+}
+```
+
+### 🎯 Enhanced IntelliSense Features
+
+The vendor extension system now provides comprehensive IntelliSense support:
+
+#### Type-Safe Key Suggestions
+- **Context-aware autocomplete**: Each context shows only valid OpenAPI keys
+- **Real-time validation**: TypeScript errors for invalid keys
+- **Hover documentation**: Detailed information about each key's purpose
+
+#### Available Contexts with IntelliSense
+- `'top-level'` → Shows: `swagger`, `openapi`, `info`, `paths`, `components`, etc.
+- `'info'` → Shows: `title`, `version`, `description`, `contact`, `license`, etc.
+- `'operation'` → Shows: `summary`, `operationId`, `parameters`, `responses`, etc.
+- `'schema'` → Shows: `$ref`, `title`, `type`, `format`, `example`, etc.
+- `'parameter'` → Shows: `name`, `description`, `in`, `required`, `schema`, etc.
+- `'response'` → Shows: `description`, `headers`, `content`, `links`
+- `'securityScheme'` → Shows: `type`, `description`, `name`, `in`, `scheme`, etc.
+- `'server'` → Shows: `url`, `description`, `variables`
+- `'tag'` → Shows: `name`, `description`, `externalDocs`
+- `'externalDocs'` → Shows: `description`, `url`
+- `'webhook'` → Shows: `summary`, `operationId`, `parameters`, `responses`, etc.
+- `'definitions'` → Shows schema keys (Swagger 2.0)
+- `'securityDefinitions'` → Shows security scheme keys (Swagger 2.0)
+
+#### Enhanced Helper Functions
+
+```typescript
+import { createPositionHelpers } from "../index.js";
+
+// Get enhanced helpers for a specific context
+const helpers = createPositionHelpers('operation');
+
+// Type-safe positioning
+helpers.before('parameters');  // ✅ IntelliSense shows valid operation keys
+helpers.after('responses');    // ✅ IntelliSense shows valid operation keys
+
+// Additional utilities
+const availableKeys = helpers.getAvailableKeys();  // Get all valid keys
+const isValid = helpers.isValidKey('summary');      // Check if key is valid
+```
+
+### Supported Contexts
+
+You can define extensions for these OpenAPI contexts:
+
+- `'top-level'` - Root OpenAPI document
+- `'info'` - API information section
+- `'operation'` - HTTP operations (GET, POST, etc.)
+- `'parameter'` - Operation parameters
+- `'schema'` - Data schemas
+- `'response'` - Operation responses
+- `'securityScheme'` - Security schemes
+- `'server'` - Server definitions
+- `'tag'` - API tags
+- `'externalDocs'` - External documentation
+- `'webhook'` - Webhook definitions
+- `'definitions'` - Swagger 2.0 definitions
+- `'securityDefinitions'` - Swagger 2.0 security definitions
+
+### Standard OpenAPI Keys Reference
+
+When positioning your extensions, you can reference these standard OpenAPI keys:
+
+#### Top-Level Keys
+- `openapi`, `swagger`, `info`, `externalDocs`, `servers`, `security`, `tags`, `paths`, `webhooks`, `components`
+
+#### Info Section Keys
+- `title`, `version`, `summary`, `description`, `termsOfService`, `contact`, `license`
+
+#### Operation Keys
+- `summary`, `operationId`, `description`, `externalDocs`, `tags`, `deprecated`, `security`, `servers`, `parameters`, `requestBody`, `responses`, `callbacks`
+
+#### Schema Keys
+- `$ref`, `title`, `description`, `type`, `format`, `enum`, `default`, `example`, `properties`, `required`, `items`, `allOf`, `anyOf`, `oneOf`, `not`
+
+#### Parameter Keys
+- `name`, `description`, `in`, `required`, `deprecated`, `schema`, `content`, `style`, `explode`, `allowReserved`, `example`
+
+#### Response Keys
+- `description`, `headers`, `content`, `links`
+
+#### Security Scheme Keys
+- `type`, `description`, `name`, `in`, `scheme`, `bearerFormat`, `flows`, `openIdConnectUrl`
+
+#### Server Keys
+- `url`, `description`, `variables`
+
+#### Tag Keys
+- `name`, `description`, `externalDocs`
+
+#### External Docs Keys
+- `description`, `url`
+
+#### Webhook Keys
+- `summary`, `operationId`, `description`, `deprecated`, `tags`, `security`, `servers`, `parameters`, `requestBody`, `responses`, `callbacks`
+
+> 📖 **Complete Key Reference**: For a comprehensive reference of all keys, their ordering, and detailed reasoning, see [KEYS.md](./KEYS.md).
+
+### Positioning Your Extensions
+
+Use the helper functions to position your extensions:
+
+- `before(key)` - Position before a standard OpenAPI key
+- `after(key)` - Position after a standard OpenAPI key
+
+#### Example: Positioning Extensions
+
+```typescript
+'operation': (before, after) => {
+  return {
+    // Position before standard keys
+    'x-your-vendor-auth': before('security'),
+    'x-your-vendor-rate-limit': before('parameters'),
+    
+    // Position after standard keys  
+    'x-your-vendor-retries': after('parameters'),
+    'x-your-vendor-timeout': after('responses'),
+    
+    // Position relative to other extensions
+    'x-your-vendor-cache': after('x-your-vendor-retries'),
+  };
+}
+```
+
+### Extension Naming Convention
+
+Follow these naming conventions for your extensions:
+
+- Use your vendor prefix: `x-your-vendor-`
+- Use descriptive names: `x-your-vendor-retries`, `x-your-vendor-timeout`
+- Keep names consistent across contexts
+- Use kebab-case for multi-word extensions
+
+### Testing Your Extensions
+
+1. **Build the project**: `bun run build`
+2. **Run tests**: `bun test`
+3. **Test with real OpenAPI files**: Create test files with your extensions
+4. **Verify positioning**: Check that your extensions appear in the correct order
+
+### Extension Collision Detection
+
+The system automatically detects and warns about extension key collisions:
+
+```
+⚠️  Extension collision detected!
+   Key: "x-common-extension" in context "operation"
+   Already defined by: Vendor A
+   Conflicting with: Vendor B
+   Using position from: Vendor A (5)
+   Ignoring position from: Vendor B (3)
+```
+
+### Advanced Type Safety
+
+The vendor extension system provides comprehensive TypeScript support:
+
+#### Type Definitions
+```typescript
+import { 
+  type VendorExtensions, 
+  type ContextExtensionFunction,
+  type OpenAPIContext,
+  type ExtensionKey 
+} from "../index.js";
+
+// Type-safe extension configuration
+const extensions: VendorExtensions = {
+  'top-level': (before, after) => {
+    // before and after are type-safe for top-level keys
+    return {
+      'x-my-extension': before('info'),
+      'x-my-config': after('paths')
+    };
+  }
+};
+```
+
+#### Extension Key Validation
+```typescript
+import { isValidExtensionKey } from "../index.js";
+
+// Validate extension keys follow OpenAPI conventions
+const isValid = isValidExtensionKey('x-my-vendor-extension'); // ✅ true
+const isInvalid = isValidExtensionKey('my-extension');       // ❌ false
+```
+
+#### Context-Specific Helpers
+```typescript
+import { createPositionHelpers } from "../index.js";
+
+// Get type-safe helpers for a specific context
+const operationHelpers = createPositionHelpers('operation');
+
+// All functions are type-safe
+operationHelpers.before('summary');     // ✅ Valid operation key
+operationHelpers.after('responses');   // ✅ Valid operation key
+operationHelpers.isValidKey('summary'); // ✅ true
+operationHelpers.getAvailableKeys();    // Returns all valid operation keys
+```
+
+### Best Practices
+
+1. **Use descriptive extension names** that clearly indicate their purpose
+2. **Position extensions logically** relative to related standard keys
+3. **Document your extensions** in your vendor documentation
+4. **Test thoroughly** with real OpenAPI files
+5. **Follow OpenAPI extension conventions** (x-vendor-name format)
+6. **Consider extension conflicts** when choosing names
+7. **Leverage IntelliSense** for type-safe key positioning
+8. **Use helper functions** for additional validation and discovery
+
+### Troubleshooting
+
+#### Common Issues
+
+**Extension not appearing in formatted output:**
+- Check that your vendor is registered in `vendor-loader.ts`
+- Verify your extension keys follow the `x-vendor-name` format
+- Ensure your positioning functions return valid numbers
+
+**Extensions in wrong order:**
+- Use `before()` and `after()` helper functions for positioning
+- Check that referenced standard keys exist in the context
+- Verify your positioning logic is correct
+
+**Extension collisions:**
+- Use unique vendor prefixes to avoid conflicts
+- Check the console for collision warnings
+- Consider renaming conflicting extensions
+
+**Build errors:**
+- Ensure your TypeScript syntax is correct
+- Check that all imports are properly resolved
+- Verify your extension structure matches the expected format
+
+#### Debug Tips
+
+1. **Enable debug logging**: Set `DEBUG=prettier-plugin-openapi:*` environment variable
+2. **Check console output**: Look for collision warnings and error messages
+3. **Test with simple extensions**: Start with basic positioning before complex logic
+4. **Verify context names**: Ensure you're using the correct context names from the supported list
+
+### Example: Complete Vendor Extension
+
+```typescript
+/**
+ * MyAPI Extensions
+ * 
+ * MyAPI platform extensions for OpenAPI formatting.
+ * Website: https://myapi.com
+ */
+
+import { defineConfig } from "../index.js";
+
+export const myapi = defineConfig({
+  info: {
+    name: 'MyAPI',
+    website: 'https://myapi.com',
+    support: 'support@myapi.com'
+  },
+  extensions: {
+    'top-level': (before, after) => {
+      return {
+        'x-myapi-sdk': before('info'),
+        'x-myapi-version': after('info'),
+      };
+    },
+    'operation': (before, after) => {
+      return {
+        'x-myapi-rate-limit': before('parameters'),
+        'x-myapi-retries': after('parameters'),
+        'x-myapi-timeout': after('responses'),
+      };
+    },
+    'schema': (before, after) => {
+      return {
+        'x-myapi-validation': after('type'),
+        'x-myapi-example': after('example'),
+      };
+    }
+  }
+});
+```
 
 ## Development
 
-### Setup
+### Modern Development Stack
+
+This project uses modern development tools for optimal performance and developer experience:
+
+- **Bun** - Fast JavaScript runtime and package manager
+- **TypeScript** - Type-safe development with strict settings
+- **Biome** - Fast linting and formatting (replaces ESLint + Prettier for code)
+- **Prettier** - Documentation and configuration file formatting
+- **GitHub Actions** - Automated CI/CD with smart releases
+
+### Quick Start
 
 ```bash
 # Install dependencies
@@ -296,9 +621,27 @@ bun test --coverage
 # Lint code
 bun run lint
 
+# Fix linting issues
+bun run lint:fix
+
 # Format code
 bun run format
 ```
+
+### Available Scripts
+
+- `bun run dev` - Start development mode with TypeScript watch
+- `bun run build` - Build the project
+- `bun run test` - Run all tests
+- `bun run test:coverage` - Run tests with coverage report
+- `bun run test:watch` - Run tests in watch mode
+- `bun run lint` - Run Biome linting
+- `bun run lint:fix` - Fix Biome linting issues automatically
+- `bun run format` - Format code with Prettier
+- `bun run format:check` - Check code formatting
+- `bun run type-check` - Run TypeScript type checking
+- `bun run validate` - Run all validation checks (type-check, lint, test)
+- `bun run clean` - Clean build artifacts
 
 ### Project Structure
 
@@ -325,17 +668,11 @@ test/
   simple-ordering.test.ts     # Basic ordering tests
   vendor.test.ts             # Vendor extension tests
   setup.ts                    # Test utilities
-.github/
-  workflows/
-    ci.yml                   # Continuous Integration
-    release.yml              # Automated releases
-examples/
-  petstore.yaml               # Example OpenAPI file
 ```
 
 ### Test Suite
 
-The project includes a comprehensive test suite with **99 tests** covering:
+The project includes a comprehensive test suite with **142 tests** covering:
 
 - **Core Functionality**: Plugin structure, parsing, formatting
 - **Integration Tests**: Real OpenAPI file processing, error handling
@@ -346,14 +683,14 @@ The project includes a comprehensive test suite with **99 tests** covering:
 - **Vendor Extensions**: Extension system functionality
 - **Options**: Configuration and formatting options
 
-**Coverage**: 94.62% line coverage, 95.74% function coverage
+**Coverage**: 95.69% line coverage, 97.00% function coverage
 
 ### CI/CD Pipeline
 
 The project includes automated CI/CD with GitHub Actions:
 
 - **Continuous Integration**: Tests on Node.js 18, 20, 22 and Bun
-- **Automated Testing**: Linting, type checking, security audits
+- **Automated Testing**: Linting with Biome, type checking, security audits
 - **Smart Releases**: Automatic patch version bumps on main branch updates
 - **NPM Publishing**: Automated publishing with version management
 - **Quality Gates**: All tests must pass before release
@@ -364,7 +701,7 @@ The plugin respects standard Prettier options:
 
 - `tabWidth`: Number of spaces for indentation (default: 2)
 - `printWidth`: Maximum line length (default: 80)
-- `useTabs`: Use tabs instead of spaces (default: false)
+- `useTabs`: Use tabs instead of spaces (default: true)
 
 ## Advanced Features
 
@@ -395,16 +732,16 @@ The plugin uses a unified sorting algorithm that:
 
 ### Comprehensive Testing
 
-- **99 Test Cases**: Covering all major functionality
-- **94.62% Line Coverage**: Extensive test coverage
-- **95.74% Function Coverage**: Nearly complete function testing
+- **142 Test Cases**: Covering all major functionality
+- **95.69% Line Coverage**: Extensive test coverage
+- **97.00% Function Coverage**: Nearly complete function testing
 - **Edge Case Testing**: Malformed files, error scenarios, performance
 - **Integration Testing**: Real-world OpenAPI file processing
 
 ### Code Quality
 
 - **TypeScript**: Full type safety and IntelliSense support
-- **ESLint**: Strict linting rules for code quality
+- **Biome**: Fast linting and formatting with TypeScript support
 - **Prettier**: Consistent code formatting
 - **Security Audits**: Automated dependency vulnerability scanning
 - **Performance Testing**: Large file handling and memory usage
@@ -431,12 +768,12 @@ We welcome contributions! Please follow these steps:
    bun run lint
    bun run format
    ```
-6. **Ensure all tests pass** (99 tests, 0 failures)
+6. **Ensure all tests pass** (142 tests, 0 failures)
 7. **Submit a pull request** with a clear description
 
 ### Development Guidelines
 
-- **Code Quality**: All code must pass ESLint and Prettier checks
+- **Code Quality**: All code must pass Biome and Prettier checks
 - **Testing**: New features require comprehensive tests
 - **TypeScript**: Use proper types and interfaces
 - **Documentation**: Update README for new features

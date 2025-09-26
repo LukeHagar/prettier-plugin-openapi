@@ -2,701 +2,376 @@
 
 This document lists all OpenAPI keys supported by the Prettier OpenAPI plugin, their ordering, and the reasoning from the source code comments.
 
+## Sorting Philosophy
+
+The key ordering follows these general principles:
+
+- **Short, important info first**: Keys like `name`, `title`, `version`, `description` that provide quick context are placed at the top
+- **Logical grouping**: Related keys are grouped together (e.g., `type` and `format`, numeric constraints, string constraints)
+- **Size-based ordering**: Shorter, simpler keys come before longer, more complex ones
+- **Reference keys at top**: `$ref` and similar reference keys are always first when present
+- **Core content in middle**: The main schema/content definitions are in the middle sections
+- **Composition at bottom**: Complex composition keys like `allOf`, `anyOf`, `oneOf` are placed near the end
+- **Examples follow content**: Example keys are placed directly after the content they exemplify
+
+The overall philosophy is to make OpenAPI specifications more readable by placing the most important, frequently referenced and smallest information items at the top.
+
+Things generally made up of other things in the middle.
+
+And the most basic building blocks are generally at the bottom.
+
 ## Root Level Keys
 
-```typescript
-export const RootKeys = [
-    // Version identifiers
-    'swagger',           // Swagger 2.0
-    'openapi',           // OpenAPI 3.0+
-
-    // Schema identifier
-    'jsonSchemaDialect', // OpenAPI 3.1+
-
-    'info',
-    'externalDocs',
-
-    // Common sense grouping for a server definition
-    'schemes',           // Swagger 2.0
-    'host',              // Swagger 2.0
-    'basePath',          // Swagger 2.0
-
-    // Typically short arrays, grouped together higher up
-    'consumes',          // Swagger 2.0
-    'produces',          // Swagger 2.0
-
-    // Servers is usually really short, and can be helpful to see at the top for quick reference
-    'servers',           // OpenAPI 3.0+ (replaces host, basePath, schemes in 2.0)
-
-    // Security is tiny, keep it at the top.
-    'security',
-
-    // Tags are often fairly long, but given that its a fairly core organizational feature, it's helpful to see at the top for quick reference
-    'tags',
-
-    // Paths are usually the longest block, unless components are used heavily, in which case it can be fairly short.
-    'paths',
-
-    // Webhooks are very often a short list, if its included at all, but depending on API structure and usage it can be quite long, having it below paths but above components seems like good placement..
-    'webhooks',          // OpenAPI 3.1+
-
-    // Components is usually the longest block when it's heavily used, due to it having sections for reuse in most all other sections.
-    'components',        // OpenAPI 3.0+ (replaces definitions, parameters, responses, securityDefinitions in 2.0)
-
-    'definitions',       // Swagger 2.0
-    'parameters',        // Swagger 2.0
-    'responses',         // Swagger 2.0
-    'securityDefinitions', // Swagger 2.0
-] as const;
-```
+1. **swagger** - version identifier
+2. **openapi** - version identifier
+3. **jsonSchemaDialect** - schema identifier
+4. **info** - API information
+5. **externalDocs** - External documentation links
+6. **schemes** - server schemes (common sense grouping for server definition)
+7. **host** - server host
+8. **basePath** - server base path
+9. **consumes** - content types (typically short arrays, grouped together higher up)
+10. **produces** - content types (typically short arrays, grouped together higher up)
+11. **servers** - server definitions (replaces host, basePath, schemes in 2.0). Usually really short, and can be helpful to see at the top for quick reference
+12. **security** - Security requirements (tiny, keep it at the top)
+13. **tags** - API tags (often fairly long, but given that it's a fairly core organizational feature, it's helpful to see at the top for quick reference)
+14. **paths** - API paths (usually the longest block, unless components are used heavily, in which case it can be fairly short)
+15. **webhooks** - webhooks (very often a short list, if included at all, but depending on API structure and usage it can be quite long, having it below paths but above components seems like good placement)
+16. **components** - reusable components (replaces definitions, parameters, responses, securityDefinitions in 2.0). Usually the longest block when it's heavily used, due to it having sections for reuse in most all other sections
+17. **definitions** - schema definitions
+18. **parameters** - global parameters
+19. **responses** - global responses
+20. **securityDefinitions** - security definitions
 
 ## Info Section Keys
 
-```typescript
-export const InfoKeys = [
-    // Title is just a name, usually a single short line.
-    'title',
-
-    // Version is a usually a tiny string, and should be at the top.
-    'version',
-
-    // Summary to me has always been a shorter description, seems appropriate to have it above description.
-    'summary',            // OpenAPI 3.1+
-
-    // Description is usually longer if its included alongside a summary. 
-    // I have seen everything from a single line to a veriatable novel.
-    'description',
-
-    // Terms of Service is usually a single line, and should be at the top.
-    'termsOfService',
-
-    // Contact and license are multi-line objects when included, so they should be at the bottom.
-    'contact',
-    'license',
-] as const;
-```
+1. **title** - API title (just a name, usually a single short line)
+2. **version** - API version (usually a tiny string, and should be at the top)
+3. **summary** - API summary (shorter description, seems appropriate to have it above description)
+4. **description** - API description (usually longer if included alongside a summary. I have seen everything from a single line to a veritable novel)
+5. **termsOfService** - Terms of service (usually a single line, and should be at the top)
+6. **contact** - Contact information (multi-line object when included, so it should be at the bottom)
+7. **license** - License information (multi-line object when included, so it should be at the bottom)
 
 ## Contact Keys
 
-```typescript
-// This key order should not require explaination.
-// If it does let me know and I'll block you.
-export const ContactKeys = [
-    'name',
-    'email',
-    'url',
-] as const;
-```
+1. **name** - Contact name
+2. **email** - Contact email
+3. **url** - Contact URL
+
+*This key order should not require explanation. If it does let me know and I'll block you.*
 
 ## License Keys
 
-```typescript
-export const LicenseKeys = [
-    'name',
-    'identifier',
-    'url',
-] as const;
-```
+1. **name** - License name
+2. **identifier** - License identifier
+3. **url** - License URL
 
 ## Components Section Keys
 
-```typescript
-// A sane ordering for components.
-export const ComponentsKeys = [
-    // Security is almost alwasy present, and very short, put it at the top.
-    'securitySchemes',
+*A sane ordering for components.*
 
-    // I have never actually seen path items included in a specification.
-    // That being said, I think the general philosophy of larger items at the top,
-    // with smaller more atomic items used to make up the larger items at the bottom, makes sense.
-    'pathItems',          // OpenAPI 3.1+
-
-    // Parameters can be larger, especially in larger APIs with extremely consistent usage patterns, but almost always shorter than schemas.
-    'parameters',
-
-    // Headers are basically just more parameters.
-    'headers',
-
-    // Request bodies are almost never used, I believe this is because the request bodies are usually so different from endpoint to endpoint.
-    // However, if they are used, Specifying them at this level seems reasonable.
-    'requestBodies',
-
-    // Responses are usually a smaller list, and often only used for global error responses.
-    'responses',
-
-    // Callbacks are essentially another kind of response.
-    'callbacks',
-
-    // Links are programatic ways to link endpoints together.
-    'links',
-
-    // Schemas are frequently the largest block, and are the building blocks that make up most every other section.
-    'schemas',
-
-    // Examples are fairly free form, and logically would be used in schemas, so it make sense to be at the bottom.
-    'examples',
-] as const;
-```
+1. **securitySchemes** - Security schemes (almost always present, and very short, put it at the top)
+2. **pathItems** - path items (I have never actually seen path items included in a specification. That being said, I think the general philosophy of larger items at the top, with smaller more atomic items used to make up the larger items at the bottom, makes sense)
+3. **parameters** - Global parameters (can be larger, especially in larger APIs with extremely consistent usage patterns, but almost always shorter than schemas)
+4. **headers** - Global headers (basically just more parameters)
+5. **requestBodies** - Global request bodies (almost never used, I believe this is because the request bodies are usually so different from endpoint to endpoint. However, if they are used, specifying them at this level seems reasonable)
+6. **responses** - Global responses (usually a smaller list, and often only used for global error responses)
+7. **callbacks** - Global callbacks (essentially another kind of response)
+8. **links** - Global links (programmatic ways to link endpoints together)
+9. **schemas** - Global schemas (frequently the largest block, and are the building blocks that make up most every other section)
+10. **examples** - Global examples (fairly free form, and logically would be used in schemas, so it makes sense to be at the bottom)
 
 ## Operation Keys
 
-```typescript
-export const OperationKeys = [
-    // Important short info at a glance.
-    'summary',
-    'operationId',
-    'description',
-    'externalDocs',      // OpenAPI 3.0+
-    'tags',
-    'deprecated',
-
-    // Security is a often short list, and is usually not included at the operation level.
-    'security',
-
-    // Servers is a often short list, and is usually not included at the operation level.
-    'servers',            // OpenAPI 3.0+
-
-    'consumes',           // Swagger 2.0
-    'produces',           // Swagger 2.0
-
-    // Parameters are ideally added first via $ref, for situations like pagination, and then single endpoint specific parameters inline after.
-    'parameters',
-
-    // Request body is going to be shorter that responses, unless the responses are all `$ref`s
-    'requestBody',        // OpenAPI 3.0+
-
-    // Responses come after the request because obviously.
-    'responses',
-
-    // Callbacks are essentially another kind of response.
-    'callbacks',          // OpenAPI 3.0+
-
-    // Schemes should never have been included at this level, its just silly, but if they are, put them at the bottom.
-    'schemes',            // Swagger 2.0
-] as const;
-```
+1. **summary** - Operation summary (important short info at a glance)
+2. **operationId** - Operation ID (important short info at a glance)
+3. **description** - Operation description (important short info at a glance)
+4. **externalDocs** - external documentation (important short info at a glance)
+5. **tags** - Operation tags (important short info at a glance)
+6. **deprecated** - Deprecation flag (important short info at a glance)
+7. **security** - Operation security (often short list, and is usually not included at the operation level)
+8. **servers** - operation servers (often short list, and is usually not included at the operation level)
+9. **consumes** - content types
+10. **produces** - content types
+11. **parameters** - Operation parameters (ideally added first via $ref, for situations like pagination, and then single endpoint specific parameters inline after)
+12. **requestBody** - request body (going to be shorter than responses, unless the responses are all `$ref`s)
+13. **responses** - Operation responses (come after the request because obviously)
+14. **callbacks** - callbacks (essentially another kind of response)
+15. **schemes** - schemes (should never have been included at this level, it's just silly, but if they are, put them at the bottom)
 
 ## Parameter Keys
 
-```typescript
-export const ParameterKeys = [
-    // Important short info at a glance.
-    'name',
-    'description',
-    'in',
-    'required',
-    'deprecated',
-
-    // Semantic formatting options for parameters.
-    'allowEmptyValue',
-    'style',
-    'explode',
-    'allowReserved',
-
-    // Schema is the core of the parameter, and specifies what the parameter actually is.
-    'schema',
-
-    // Content is similar to schema, and is typically only used for more complex parameters.
-    'content',            // OpenAPI 3.0+
-
-    // Type and format are the most common schema keys, and should be always be paired together.
-    'type',               // Swagger 2.0
-    'format',             // Swagger 2.0
-
-    // When type is array, items should be present.
-    // collectionFormat is the array equivalent of format.
-    'items',              // Swagger 2.0
-    'collectionFormat',   // Swagger 2.0
-
-    // Default is the default value of the parameter when that parameter is not specified.
-    'default',            // Swagger 2.0
-
-    // Numeric parameter constraints grouped together
-    // Min before max, multipleOf in the middle, since its essentially steps between.
-    'minimum',            // Swagger 2.0
-    'exclusiveMinimum',   // Swagger 2.0
-    'multipleOf',         // Swagger 2.0
-    'maximum',            // Swagger 2.0
-    'exclusiveMaximum',   // Swagger 2.0
-
-    // String parameter constraints
-    'pattern',            // Swagger 2.0
-    'minLength',          // Swagger 2.0
-    'maxLength',          // Swagger 2.0
-
-    // Array parameter constraints
-    'minItems',           // Swagger 2.0
-    'maxItems',           // Swagger 2.0
-    'uniqueItems',        // Swagger 2.0
-
-    // Enum is a strict list of allowed values for the parameter.
-    'enum',               // Swagger 2.0
-
-    // Example and examples are perfect directly below the schema.
-    'example',
-    'examples',
-] as const;
-```
+1. **name** - Parameter name (important short info at a glance)
+2. **description** - Parameter description (important short info at a glance)
+3. **in** - Parameter location (important short info at a glance)
+4. **required** - Required flag (important short info at a glance)
+5. **deprecated** - Deprecation flag (important short info at a glance)
+6. **allowEmptyValue** - Allow empty values (semantic formatting options for parameters)
+7. **style** - Parameter style (semantic formatting options for parameters)
+8. **explode** - Explode flag (semantic formatting options for parameters)
+9. **allowReserved** - Allow reserved characters (semantic formatting options for parameters)
+10. **schema** - Parameter schema (the core of the parameter, and specifies what the parameter actually is)
+11. **content** - content (similar to schema, and is typically only used for more complex parameters)
+12. **type** - parameter type (the most common schema keys, and should always be paired together)
+13. **format** - parameter format (the most common schema keys, and should always be paired together)
+14. **items** - array items (when type is array, items should be present)
+15. **collectionFormat** - collection format (the array equivalent of format)
+16. **default** - default value (the default value of the parameter when that parameter is not specified)
+17. **minimum** - minimum value (numeric parameter constraints grouped together)
+18. **exclusiveMinimum** - exclusive minimum (numeric parameter constraints grouped together)
+19. **multipleOf** - multiple of (numeric parameter constraints grouped together)
+20. **maximum** - maximum value (numeric parameter constraints grouped together)
+21. **exclusiveMaximum** - exclusive maximum (numeric parameter constraints grouped together)
+22. **pattern** - pattern (string parameter constraints)
+23. **minLength** - minimum length (string parameter constraints)
+24. **maxLength** - maximum length (string parameter constraints)
+25. **minItems** - minimum items (array parameter constraints)
+26. **maxItems** - maximum items (array parameter constraints)
+27. **uniqueItems** - unique items (array parameter constraints)
+28. **enum** - enum values (a strict list of allowed values for the parameter)
+29. **example** - Parameter example (perfect directly below the schema)
+30. **examples** - Parameter examples (perfect directly below the schema)
 
 ## Schema Keys
 
-```typescript
-export const SchemaKeys = [
-    // $ref should always be at the top, because when its included there are at most 2 other keys that are present.
-    '$ref',               // JSON Schema draft
-
-    // When $id is included it's used as a kind of name, or an id if you will, and should be at the top.
-    '$id',                // JSON Schema draft
-
-    // These JSON Schema draft keys are rarely used in my experience.
-    // They seem to all be extremely short, so are fine to be at the top.
-    // Anybody who uses them a lot feel free to weigh in here and make an argument for a different placement.
-
-    // Schema and Vocabulary appear to be universally be external links, so should be grouped.
-    '$schema',            // JSON Schema draft
-    '$vocabulary',        // JSON Schema draft
-
-    // I have no idea on the practical use of these keys, especially in this context,
-    // but someone using them would likely want them close to the top for reference.
-    '$anchor',            // JSON Schema draft
-    '$dynamicAnchor',     // JSON Schema draft
-    '$dynamicRef',        // JSON Schema draft
-    '$comment',           // JSON Schema draft
-    '$defs',              // JSON Schema draft
-    '$recursiveAnchor',   // JSON Schema draft
-    '$recursiveRef',      // JSON Schema draft
-
-    // This is where most non $ref schemas will begin.
-
-    // The info section of the schema.
-    'title',
-    // description and externalDocs logically come after the title, 
-    // describing it in more and more detail.
-    'description',
-    'externalDocs',
-    // Deprecated is a good at a glance key, and stays at the top.
-    'deprecated',
-
-    // This next section describes the type and how it behaves.
-
-    // Type and format should always be grouped together.
-    'type',
-    'format',
-
-    // Content schema, media type, and encoding are all related to the content of the schema, 
-    // and are similar to format. They should be grouped together.
-    'contentSchema',      // JSON Schema draft
-    'contentMediaType',   // JSON Schema draft
-    'contentEncoding',    // JSON Schema draft
-
-    // Nullable is like format, it specifies how the type can behave, 
-    // and in more recent versions of OpenAPI its directly included in the type field.
-    'nullable',
-
-    // Enum and const are both static entries of allowed values for the schema.
-    // They should be grouped together.
-    'const',
-    'enum',
-
-    // The default value of the schema when that schema is not specified.
-    // Same as with parameters, but at the schema level.
-    'default',
-
-    // ReadOnly and WriteOnly are boolean flags and should be grouped together.
-    'readOnly',
-    'writeOnly',
-
-    // Examples when included should be directly below what they are examples of.
-    'example',
-    'examples',
-
-    // Numeric constraints grouped together
-    // Min before max, multipleOf in the middle, since its steps between them.
-    'minimum',
-    'exclusiveMinimum',
-    'multipleOf',
-    'maximum',
-    'exclusiveMaximum',
-
-    // String constraints grouped together
-    'pattern',
-    'minLength',
-    'maxLength',
-
-    // Array constraints grouped together
-    'uniqueItems',
-    'minItems',
-    'maxItems',
-    'items',
-
-    // Prefix items describes tuple like array behavior.
-    'prefixItems',        // JSON Schema draft
-
-    // Contains specifies a subschema that must be present in the array.
-    // Min and max contains specify the match occurrence constraints for the contains key.
-    'contains',           // JSON Schema draft
-    'minContains',        // JSON Schema draft
-    'maxContains',        // JSON Schema draft
-
-    // After accounting for Items, prefixItems, and contains, unevaluatedItems specifies if additional items are allowed.
-    // This key is either a boolean or a subschema.
-    // Behaves the same as additionalProperties at the object level.
-    'unevaluatedItems',   // JSON Schema draft
-
-    // Object constraints grouped together
-    // min and max properties specify how many properties an object can have.
-    'minProperties',
-    'maxProperties',
-
-    // Pattern properties are a way to specify a pattern and schemas for properties that match that pattern.
-    // Additional properties are a way to specify if additional properties are allowed and if so, how they are shaped.
-    'patternProperties',
-    'additionalProperties',
-
-    // Properties are the actual keys and schemas that make up the object.
-    'properties',
-
-    // Required is a list of those properties that are required to be present in the object.
-    'required',
-
-    // Unevaluated properties specifies if additional properties are allowed after applying all other validation rules.
-    // This is more powerful than additionalProperties as it considers the effects of allOf, anyOf, oneOf, etc.
-    'unevaluatedProperties', // JSON Schema draft
-
-    // Property names defines a schema that property names must conform to.
-    // This is useful for validating that all property keys follow a specific pattern or format.
-    'propertyNames',      // JSON Schema draft
-
-    // Dependent required specifies properties that become required when certain other properties are present.
-    // This allows for conditional requirements based on the presence of specific properties.
-    'dependentRequired',  // JSON Schema draft
-
-    // Dependent schemas defines schemas that apply when certain properties are present.
-    // This allows for conditional validation rules based on the presence of specific properties.
-    // For example, if a property is present, a certain other property must also be present, and match a certain schema.
-    'dependentSchemas',   // JSON Schema draft
-
-    // Discriminator is a way to specify a property that differentiates between different types of objects.
-    // This is useful for polymorphic schemas, and should go above the schema composition keys.
-    'discriminator',
-
-    // Schema composition keys grouped together
-    // allOf, anyOf, oneOf, and not are all used to compose schemas from other schemas.
-    // allOf is a logical AND, 
-    // anyOf is a logical OR, 
-    // oneOf is a logical XOR, 
-    // and not is a logical NOT.
-    'allOf',
-    'anyOf',
-    'oneOf',
-    'not',
-
-    // Conditional keys grouped together
-    'if',                 // JSON Schema draft
-    'then',               // JSON Schema draft
-    'else',               // JSON Schema draft
-
-    // XML is a way to specify the XML serialization of the schema.
-    // This is useful for APIs that need to support XML serialization.
-    'xml',
-] as const;
-```
+1. **$ref** - JSON Schema draft reference (should always be at the top, because when included there are at most 2 other keys that are present)
+2. **$id** - JSON Schema draft ID (when included it's used as a kind of name, or an id if you will, and should be at the top)
+3. **$schema** - JSON Schema draft schema (appears to be universally external links, so should be grouped)
+4. **$vocabulary** - JSON Schema draft vocabulary (appears to be universally external links, so should be grouped)
+5. **$anchor** - JSON Schema draft anchor (I have no idea on the practical use of these keys, especially in this context, but someone using them would likely want them close to the top for reference)
+6. **$dynamicAnchor** - JSON Schema draft dynamic anchor (I have no idea on the practical use of these keys, especially in this context, but someone using them would likely want them close to the top for reference)
+7. **$dynamicRef** - JSON Schema draft dynamic reference (I have no idea on the practical use of these keys, especially in this context, but someone using them would likely want them close to the top for reference)
+8. **$comment** - JSON Schema draft comment (I have no idea on the practical use of these keys, especially in this context, but someone using them would likely want them close to the top for reference)
+9. **$defs** - JSON Schema draft definitions (I have no idea on the practical use of these keys, especially in this context, but someone using them would likely want them close to the top for reference)
+10. **$recursiveAnchor** - JSON Schema draft recursive anchor (I have no idea on the practical use of these keys, especially in this context, but someone using them would likely want them close to the top for reference)
+11. **$recursiveRef** - JSON Schema draft recursive reference (I have no idea on the practical use of these keys, especially in this context, but someone using them would likely want them close to the top for reference)
+12. **title** - Schema title (the info section of the schema)
+13. **description** - Schema description (description and externalDocs logically come after the title, describing it in more and more detail)
+14. **externalDocs** - Schema external documentation (description and externalDocs logically come after the title, describing it in more and more detail)
+15. **deprecated** - Deprecation flag (a good at a glance key, and stays at the top)
+16. **type** - Schema type (type and format should always be grouped together)
+17. **format** - Schema format (type and format should always be grouped together)
+18. **contentSchema** - JSON Schema draft content schema (content schema, media type, and encoding are all related to the content of the schema, and are similar to format. They should be grouped together)
+19. **contentMediaType** - JSON Schema draft content media type (content schema, media type, and encoding are all related to the content of the schema, and are similar to format. They should be grouped together)
+20. **contentEncoding** - JSON Schema draft content encoding (content schema, media type, and encoding are all related to the content of the schema, and are similar to format. They should be grouped together)
+21. **nullable** - Nullable flag (like format, it specifies how the type can behave, and in more recent versions of OpenAPI it's directly included in the type field)
+22. **const** - Constant value (enum and const are both static entries of allowed values for the schema. They should be grouped together)
+23. **enum** - Enum values (enum and const are both static entries of allowed values for the schema. They should be grouped together)
+24. **default** - Default value (the default value of the schema when that schema is not specified. Same as with parameters, but at the schema level)
+25. **readOnly** - Read-only flag (readOnly and writeOnly are boolean flags and should be grouped together)
+26. **writeOnly** - Write-only flag (readOnly and writeOnly are boolean flags and should be grouped together)
+27. **example** - Schema example (examples when included should be directly below what they are examples of)
+28. **examples** - Schema examples (examples when included should be directly below what they are examples of)
+29. **minimum** - Minimum value (numeric constraints grouped together)
+30. **exclusiveMinimum** - Exclusive minimum (numeric constraints grouped together)
+31. **multipleOf** - Multiple of (numeric constraints grouped together)
+32. **maximum** - Maximum value (numeric constraints grouped together)
+33. **exclusiveMaximum** - Exclusive maximum (numeric constraints grouped together)
+34. **pattern** - Pattern (string constraints grouped together)
+35. **minLength** - Minimum length (string constraints grouped together)
+36. **maxLength** - Maximum length (string constraints grouped together)
+37. **uniqueItems** - Unique items (array constraints grouped together)
+38. **minItems** - Minimum items (array constraints grouped together)
+39. **maxItems** - Maximum items (array constraints grouped together)
+40. **items** - Array items (array constraints grouped together)
+41. **prefixItems** - JSON Schema draft prefix items (describes tuple like array behavior)
+42. **contains** - JSON Schema draft contains (specifies a subschema that must be present in the array)
+43. **minContains** - JSON Schema draft minimum contains (min and max contains specify the match occurrence constraints for the contains key)
+44. **maxContains** - JSON Schema draft maximum contains (min and max contains specify the match occurrence constraints for the contains key)
+45. **unevaluatedItems** - JSON Schema draft unevaluated items (after accounting for Items, prefixItems, and contains, unevaluatedItems specifies if additional items are allowed. This key is either a boolean or a subschema. Behaves the same as additionalProperties at the object level)
+46. **minProperties** - Minimum properties (object constraints grouped together)
+47. **maxProperties** - Maximum properties (object constraints grouped together)
+48. **patternProperties** - Pattern properties (a way to specify a pattern and schemas for properties that match that pattern)
+49. **additionalProperties** - Additional properties (a way to specify if additional properties are allowed and if so, how they are shaped)
+50. **properties** - Object properties (the actual keys and schemas that make up the object)
+51. **required** - Required properties (a list of those properties that are required to be present in the object)
+52. **unevaluatedProperties** - JSON Schema draft unevaluated properties (specifies if additional properties are allowed after applying all other validation rules. This is more powerful than additionalProperties as it considers the effects of allOf, anyOf, oneOf, etc.)
+53. **propertyNames** - JSON Schema draft property names (defines a schema that property names must conform to. This is useful for validating that all property keys follow a specific pattern or format)
+54. **dependentRequired** - JSON Schema draft dependent required (specifies properties that become required when certain other properties are present. This allows for conditional requirements based on the presence of specific properties)
+55. **dependentSchemas** - JSON Schema draft dependent schemas (defines schemas that apply when certain properties are present. This allows for conditional validation rules based on the presence of specific properties. For example, if a property is present, a certain other property must also be present, and match a certain schema)
+56. **discriminator** - Discriminator (a way to specify a property that differentiates between different types of objects. This is useful for polymorphic schemas, and should go above the schema composition keys)
+57. **allOf** - All of composition (allOf, anyOf, oneOf, and not are all used to compose schemas from other schemas. allOf is a logical AND)
+58. **anyOf** - Any of composition (allOf, anyOf, oneOf, and not are all used to compose schemas from other schemas. anyOf is a logical OR)
+59. **oneOf** - One of composition (allOf, anyOf, oneOf, and not are all used to compose schemas from other schemas. oneOf is a logical XOR)
+60. **not** - Not composition (allOf, anyOf, oneOf, and not are all used to compose schemas from other schemas. not is a logical NOT)
+61. **if** - JSON Schema draft conditional if (conditional keys grouped together)
+62. **then** - JSON Schema draft conditional then (conditional keys grouped together)
+63. **else** - JSON Schema draft conditional else (conditional keys grouped together)
+64. **xml** - XML serialization (a way to specify the XML serialization of the schema. This is useful for APIs that need to support XML serialization)
 
 ## Response Keys
 
-```typescript
-export const ResponseKeys = [
-    // Description is a good at a glance key, and stays at the top.
-    'description',
-
-    // Headers are a common key, and should be at the top.
-    'headers',
-
-    // Schema and content are the core shape of the response.
-    'schema',              // Swagger 2.0
-    'content',             // OpenAPI 3.0+
-
-    // Examples are of the schema, and should be directly below the schema.
-    'examples',            // Swagger 2.0
-
-    // Links are programatic ways to link responses together.
-    'links',               // OpenAPI 3.0+
-] as const;
-```
+1. **description** - Response description (a good at a glance key, and stays at the top)
+2. **headers** - Response headers (a common key, and should be at the top)
+3. **schema** - response schema (the core shape of the response)
+4. **content** - response content (the core shape of the response)
+5. **examples** - response examples (examples are of the schema, and should be directly below the schema)
+6. **links** - response links (programmatic ways to link responses together)
 
 ## Security Scheme Keys
 
-```typescript
-export const SecuritySchemeKeys = [
-    // Good at a glance keys.
-    'name',
-    'description',
-
-    // The primary type of this security scheme
-    'type',
-    'in',
-    'scheme',
-
-    // If scheme is bearer, bearerFormat is the format of the bearer token.
-    // Should be directly below scheme.
-    'bearerFormat',
-
-    // If scheme is openIdConnect, openIdConnectUrl is the URL of the OpenID Connect server.
-    'openIdConnectUrl',
-
-    // Flows are the different ways to authenticate with this security scheme.
-    'flows',               // OpenAPI 3.0+
-
-    'flow',                // Swagger 2.0
-    'authorizationUrl',    // Swagger 2.0
-    'tokenUrl',            // Swagger 2.0
-    'scopes',              // Swagger 2.0
-] as const;
-```
+1. **name** - Security scheme name (good at a glance keys)
+2. **description** - Security scheme description (good at a glance keys)
+3. **type** - Security scheme type (the primary type of this security scheme)
+4. **in** - Security scheme location (the primary type of this security scheme)
+5. **scheme** - Security scheme (the primary type of this security scheme)
+6. **bearerFormat** - Bearer token format (if scheme is bearer, bearerFormat is the format of the bearer token. Should be directly below scheme)
+7. **openIdConnectUrl** - OpenID Connect URL (if scheme is openIdConnect, openIdConnectUrl is the URL of the OpenID Connect server)
+8. **flows** - OAuth flows (the different ways to authenticate with this security scheme)
+9. **flow** - OAuth flow
+10. **authorizationUrl** - authorization URL
+11. **tokenUrl** - token URL
+12. **scopes** - OAuth scopes
 
 ## OAuth Flow Keys
 
-```typescript
-export const OAuthFlowKeys = [
-    // Authorization URL is where the client can get an authorization code.
-    'authorizationUrl',
-
-    // Token URL is where the client can get a token.
-    'tokenUrl',
-
-    // Refresh URL is where the client can refresh a token.
-    'refreshUrl',
-
-    // Scopes are the different scopes that can be used with this security scheme.
-    'scopes',
-] as const;
-```
+1. **authorizationUrl** - Authorization URL (where the client can get an authorization code)
+2. **tokenUrl** - Token URL (where the client can get a token)
+3. **refreshUrl** - Refresh URL (where the client can refresh a token)
+4. **scopes** - OAuth scopes (the different scopes that can be used with this security scheme)
 
 ## Server Keys
 
-```typescript
-export const ServerKeys = [
-    // Name first because obviously.
-    'name',           // OpenAPI 3.2+
-
-    // Description so you know what you are looking at.
-    'description',
-
-    // URL is the URL of the server.
-    'url',
-
-    // Variables are the different variables that are present in the URL.
-    'variables',
-] as const;
-```
+1. **name** - server name (name first because obviously)
+2. **description** - Server description (description so you know what you are looking at)
+3. **url** - Server URL (the URL of the server)
+4. **variables** - Server variables (the different variables that are present in the URL)
 
 ## Server Variable Keys
 
-```typescript
-export const ServerVariableKeys = [
-    // Description so you know what you are looking at.
-    'description',
-
-    // Default is the default value of the variable when that variable is not specified.
-    // IMO this should be optional, but I was not consulted.
-    'default',
-
-    // Enum is a static list of allowed values for the variable.
-    'enum',
-] as const;
-```
+1. **description** - Variable description (description so you know what you are looking at)
+2. **default** - Variable default value (the default value of the variable when that variable is not specified. IMO this should be optional, but I was not consulted)
+3. **enum** - Variable enum values (a static list of allowed values for the variable)
 
 ## Tag Keys
 
-```typescript
-export const TagKeys = [
-    // Name first because obviously.
-    'name',
-
-    // Description so you know what you are looking at.
-    'description',
-
-    // External docs should be like an extension of the description.
-    'externalDocs',
-] as const;
-```
+1. **name** - Tag name (name first because obviously)
+2. **description** - Tag description (description so you know what you are looking at)
+3. **externalDocs** - Tag external documentation (external docs should be like an extension of the description)
 
 ## External Documentation Keys
 
-```typescript
-// The only sane key order, fight me.
-export const ExternalDocsKeys = [
-    'description',
-    'url',
-] as const;
-```
+*The only sane key order, fight me.*
+
+1. **description** - External documentation description
+2. **url** - External documentation URL
 
 ## Webhook Keys
 
-```typescript
-// This seems like an obvious order given out running philosophy.
-export const WebhookKeys = [
-    'summary',
-    'operationId',
-    'description',
-    'deprecated',
-    'tags',
-    'security',
-    'servers',
-    'parameters',
-    'requestBody',
-    'responses',
-    'callbacks',
-] as const;
-```
+*This seems like an obvious order given our running philosophy.*
+
+1. **summary** - Webhook summary
+2. **operationId** - Webhook operation ID
+3. **description** - Webhook description
+4. **deprecated** - Webhook deprecation flag
+5. **tags** - Webhook tags
+6. **security** - Webhook security
+7. **servers** - Webhook servers
+8. **parameters** - Webhook parameters
+9. **requestBody** - Webhook request body
+10. **responses** - Webhook responses
+11. **callbacks** - Webhook callbacks
 
 ## Path Item Keys
 
-```typescript
-// Short blocks at the top, long at the bottom.
-export const PathItemKeys = [
-    '$ref',
-    'summary',
-    'description',
-    'servers',
-    'parameters',
-    'get',
-    'put',
-    'post',
-    'delete',
-    'options',
-    'head',
-    'patch',
-    'trace',
-] as const;
-```
+*Short blocks at the top, long at the bottom.*
+
+1. **$ref** - Path item reference
+2. **summary** - Path item summary
+3. **description** - Path item description
+4. **servers** - Path item servers
+5. **parameters** - Path item parameters
+6. **get** - GET operation
+7. **put** - PUT operation
+8. **post** - POST operation
+9. **patch** - PATCH operation
+10. **delete** - DELETE operation
+11. **options** - OPTIONS operation
+12. **head** - HEAD operation
+13. **trace** - TRACE operation
 
 ## Request Body Keys
 
-```typescript
-// Simple/short first
-export const RequestBodyKeys = [
-    'description',
-    'required',
-    'content',
-] as const;
-```
+*Simple/short first*
+
+1. **description** - Request body description
+2. **required** - Required flag
+3. **content** - Request body content
 
 ## Media Type Keys
 
-```typescript
-// These are a bit trickier, all seem rather long in context.
-// I'll with this order since it seems less to more complex.
-export const MediaTypeKeys = [
-    'schema',
-    'example',
-    'examples',
-    'encoding',
-] as const;
-```
+*These are a bit trickier, all seem rather long in context. I'll go with this order since it seems less to more complex.*
+
+1. **schema** - Media type schema
+2. **example** - Media type example
+3. **examples** - Media type examples
+4. **encoding** - Media type encoding
 
 ## Encoding Keys
 
-```typescript
-export const EncodingKeys = [
-    // Content type is just MIME type.
-    'contentType',
-
-    // Style, explode, and allowReserved are simple string or boolean values.
-    'style',
-    'explode',
-    'allowReserved',
-
-    // Headers is longer, put it at the bottom.
-    'headers',
-] as const;
-```
+1. **contentType** - Content type (just MIME type)
+2. **style** - Encoding style (simple string or boolean values)
+3. **explode** - Explode flag (simple string or boolean values)
+4. **allowReserved** - Allow reserved characters (simple string or boolean values)
+5. **headers** - Encoding headers (longer, put it at the bottom)
 
 ## Header Keys
 
-```typescript
-export const HeaderKeys = [
-    // Description is a good at a glance key, and stays at the top.
-    'description',
-    'required',
-    'deprecated',
-
-    'schema',
-    'content',
-    'type',
-    'format',
-    'style',
-    'explode',
-    'enum',
-    'default',
-    'example',
-    'examples',
-
-    // Array keys grouped together
-    'items',
-    'collectionFormat',
-    // Array constraints grouped together
-    'maxItems',
-    'minItems',
-    'uniqueItems',
-
-    // Numeric constraints grouped together
-    'minimum',
-    'multipleOf',
-    'exclusiveMinimum',
-    'maximum',
-    'exclusiveMaximum',
-
-    // String constraints grouped together
-    'pattern',
-    'minLength',
-    'maxLength',
-] as const;
-```
+1. **description** - Header description (a good at a glance key, and stays at the top)
+2. **required** - Required flag
+3. **deprecated** - Deprecation flag
+4. **schema** - Header schema
+5. **content** - Header content
+6. **type** - Header type
+7. **format** - Header format
+8. **style** - Header style
+9. **explode** - Explode flag
+10. **enum** - Header enum values
+11. **default** - Default value
+12. **example** - Header example
+13. **examples** - Header examples
+14. **items** - Array items (array keys grouped together)
+15. **collectionFormat** - Collection format (array keys grouped together)
+16. **maxItems** - Maximum items (array constraints grouped together)
+17. **minItems** - Minimum items (array constraints grouped together)
+18. **uniqueItems** - Unique items (array constraints grouped together)
+19. **minimum** - Minimum value (numeric constraints grouped together)
+20. **multipleOf** - Multiple of (numeric constraints grouped together)
+21. **exclusiveMinimum** - Exclusive minimum (numeric constraints grouped together)
+22. **maximum** - Maximum value (numeric constraints grouped together)
+23. **exclusiveMaximum** - Exclusive maximum (numeric constraints grouped together)
+24. **pattern** - Pattern (string constraints grouped together)
+25. **minLength** - Minimum length (string constraints grouped together)
+26. **maxLength** - Maximum length (string constraints grouped together)
 
 ## Link Keys
 
-```typescript
-export const LinkKeys = [
-    'operationId',
-    'description',
-    'server',
-    'operationRef',
-    'parameters',
-    'requestBody',
-] as const;
-```
+1. **operationId** - Link operation ID
+2. **description** - Link description
+3. **server** - Link server
+4. **operationRef** - Link operation reference
+5. **parameters** - Link parameters
+6. **requestBody** - Link request body
 
 ## Example Keys
 
-```typescript
-export const ExampleKeys = [
-    'summary',
-    'description',
-    'value',
-    'externalValue',
-] as const;
-```
+1. **summary** - Example summary
+2. **description** - Example description
+3. **value** - Example value
+4. **externalValue** - External example value
 
 ## Discriminator Keys
 
-```typescript
-// Discriminator keys in preferred order (OpenAPI 3.0+)
-export const DiscriminatorKeys = [
-    'propertyName',
-    'mapping',
-] as const;
-```
+*Discriminator keys in preferred order (
+1. **propertyName** - Discriminator property name
+2. **mapping** - Discriminator mapping
 
 ## XML Keys
 
-```typescript
-// XML keys in preferred order (OpenAPI 3.0+)
-export const XMLKeys = [
-    'name',
-    'namespace',
-    'prefix',
-    'attribute',
-    'wrapped',
-] as const;
-```
+*XML keys in preferred order (
+1. **name** - XML name
+2. **namespace** - XML namespace
+3. **prefix** - XML prefix
+4. **attribute** - XML attribute flag
+5. **wrapped** - XML wrapped flag

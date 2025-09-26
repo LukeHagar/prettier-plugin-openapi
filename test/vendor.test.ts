@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { getVendorExtensions } from '../src/extensions';
+import { getVendorExtensions } from '../src/extensions/vendor-loader';
 
 describe('Vendor Extension System', () => {
   it('should load vendor extensions from TS files', () => {

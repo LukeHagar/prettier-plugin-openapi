@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeEach, afterEach } from 'bun:test';
-import { getVendorExtensions, defineConfig } from '../src/extensions/index';
+import { defineConfig } from '../src/extensions/index';
+import { getVendorExtensions } from '../src/extensions/vendor-loader';
 
 // Mock console.warn to capture collision warnings
 let consoleWarnSpy: any;
