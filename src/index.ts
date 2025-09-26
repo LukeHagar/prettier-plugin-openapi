@@ -1,25 +1,34 @@
 import { Plugin } from 'prettier';
 import * as yaml from 'js-yaml';
-import { getVendorExtensions } from './extensions';
+import { getVendorExtensions } from './extensions/vendor-loader.js';
 
 import {
-  TOP_LEVEL_KEYS,
-  INFO_KEYS,
-  CONTACT_KEYS,
-  LICENSE_KEYS,
-  COMPONENTS_KEYS,
-  OPERATION_KEYS,
-  PARAMETER_KEYS,
-  SCHEMA_KEYS,
-  RESPONSE_KEYS,
-  SECURITY_SCHEME_KEYS,
-  OAUTH_FLOW_KEYS,
-  SERVER_KEYS,
-  SERVER_VARIABLE_KEYS,
-  TAG_KEYS,
-  EXTERNAL_DOCS_KEYS,
-  WEBHOOK_KEYS
-} from './keys';
+  RootKeys,
+  InfoKeys,
+  ContactKeys,
+  LicenseKeys,
+  ComponentsKeys,
+  OperationKeys,
+  ParameterKeys,
+  SchemaKeys,
+  ResponseKeys,
+  SecuritySchemeKeys,
+  OAuthFlowKeys,
+  ServerKeys,
+  ServerVariableKeys,
+  TagKeys,
+  ExternalDocsKeys,
+  WebhookKeys,
+  PathItemKeys,
+  RequestBodyKeys,
+  MediaTypeKeys,
+  EncodingKeys,
+  HeaderKeys,
+  LinkKeys,
+  ExampleKeys,
+  DiscriminatorKeys,
+  XMLKeys,
+} from './keys.js';
 
 // Type definitions for better type safety
 interface OpenAPINode {
@@ -38,15 +47,7 @@ interface OpenAPIPluginOptions {
 }
 
 // Load vendor extensions
-let vendorExtensions: any = {};
-
-try {
-    vendorExtensions = getVendorExtensions();
-    console.log('Vendor extensions loaded successfully');
-} catch (error) {
-    console.warn('Failed to load vendor extensions:', error);
-    vendorExtensions = {};
-}
+const vendorExtensions = getVendorExtensions();
 
 // ============================================================================
 // FILE DETECTION FUNCTIONS
@@ -60,18 +61,8 @@ function isOpenAPIFile(content: any, filePath?: string): boolean {
         return false;
     }
 
-    // Check for root-level OpenAPI indicators
+    // Check for root-level OpenAPI indicators (most important)
     if (content.openapi || content.swagger) {
-        return true;
-    }
-
-    // Check for component-like structures
-    if (content.components || content.definitions || content.parameters || content.responses || content.securityDefinitions) {
-        return true;
-    }
-
-    // Check for path-like structures (operations)
-    if (content.paths || isPathObject(content)) {
         return true;
     }
 
@@ -97,8 +88,19 @@ function isOpenAPIFile(content: any, filePath?: string): boolean {
         }
     }
 
+    // Check for component-like structures (only if we have strong indicators)
+    if (content.components || content.definitions || content.parameters || content.responses || content.securityDefinitions) {
+        return true;
+    }
+
+    // Check for path-like structures (operations)
+    if (content.paths || isPathObject(content)) {
+        return true;
+    }
+
     // Check for schema-like structures (but be more strict)
-    if (isSchemaObject(content)) {
+    // Only accept if we have strong schema indicators
+    if (isSchemaObject(content) && (content.$ref || content.allOf || content.oneOf || content.anyOf || content.not || content.properties || content.items)) {
         return true;
     }
 
@@ -137,6 +139,19 @@ function isOpenAPIFile(content: any, filePath?: string): boolean {
         return true;
     }
 
+    // Additional strict check: reject objects that look like generic data
+    // If an object only has simple properties like name, age, etc. without any OpenAPI structure, reject it
+    const keys = Object.keys(content);
+    const hasOnlyGenericProperties = keys.every(key => 
+        !key.startsWith('x-') && // Not a custom extension
+        !['openapi', 'swagger', 'info', 'paths', 'components', 'definitions', 'parameters', 'responses', 'securityDefinitions', 'tags', 'servers', 'webhooks'].includes(key)
+    );
+    
+    if (hasOnlyGenericProperties) {
+        return false;
+    }
+
+    // If none of the above conditions are met, it's not an OpenAPI file
     return false;
 }
 
@@ -151,38 +166,6 @@ function isPathObject(obj: any): boolean {
     const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'];
     return Object.keys(obj).some(key => httpMethods.includes(key.toLowerCase()));
 }
-
-// Map of path patterns to their key ordering
-const KEY_ORDERING_MAP: Record<string, readonly string[]> = {
-    'info': INFO_KEYS,
-    'contact': CONTACT_KEYS,
-    'license': LICENSE_KEYS,
-    'components': COMPONENTS_KEYS,
-    'schemas': [], // Schema properties sorted alphabetically
-    'responses': [], // Response codes sorted numerically
-    'parameters': [], // Parameters sorted alphabetically
-    'securitySchemes': [], // Security schemes sorted alphabetically
-    'paths': [], // Paths sorted by specificity
-    'webhooks': [], // Webhooks sorted by specificity (OpenAPI 3.1+)
-    'servers': SERVER_KEYS,
-    'variables': SERVER_VARIABLE_KEYS,
-    'tags': TAG_KEYS,
-    'externalDocs': EXTERNAL_DOCS_KEYS,
-    // Swagger 2.0 specific
-    'definitions': [], // Definitions sorted alphabetically
-    'securityDefinitions': [], // Security definitions sorted alphabetically
-};
-
-// Map for operation-level keys
-const OPERATION_KEY_ORDERING_MAP: Record<string, readonly string[]> = {
-    'operation': OPERATION_KEYS,
-    'parameter': PARAMETER_KEYS,
-    'schema': SCHEMA_KEYS,
-    'response': RESPONSE_KEYS,
-    'securityScheme': SECURITY_SCHEME_KEYS,
-    'oauthFlow': OAUTH_FLOW_KEYS,
-    'webhook': WEBHOOK_KEYS,
-};
 
 const plugin: Plugin = {
     languages: [
@@ -309,7 +292,7 @@ function sortOpenAPIKeys(obj: any): any {
 
     const sortedKeys = Object.keys(obj).sort((a, b) => {
         // Use the unified sorting function
-        return sortKeys(a, b, TOP_LEVEL_KEYS, topLevelExtensions);
+        return sortKeys(a, b, RootKeys, topLevelExtensions);
     });
 
     const sortedObj: any = {};
@@ -405,7 +388,8 @@ function isSchemaObject(obj: any): boolean {
     
     // Only return true if we have clear schema indicators
     // Must have either schema keywords OR valid type with schema properties
-    return hasSchemaKeywords || (hasValidType && ('properties' in obj || 'items' in obj || 'enum' in obj));
+    // Also require additional schema-specific properties to be more strict
+    return hasSchemaKeywords || (hasValidType && ('properties' in obj || 'items' in obj || 'enum' in obj || 'format' in obj || 'pattern' in obj));
 }
 
 function isResponseObject(obj: any): boolean {
@@ -422,7 +406,10 @@ function isServerObject(obj: any): boolean {
 }
 
 function isTagObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && 'name' in obj;
+    return obj && typeof obj === 'object' && 'name' in obj && typeof obj.name === 'string' && 
+           (Object.keys(obj).length === 1 || // Only name
+            'description' in obj || // name + description
+            'externalDocs' in obj); // name + externalDocs
 }
 
 function isExternalDocsObject(obj: any): boolean {
@@ -432,6 +419,59 @@ function isExternalDocsObject(obj: any): boolean {
 function isWebhookObject(obj: any): boolean {
     const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'];
     return obj && typeof obj === 'object' && Object.keys(obj).some(key => httpMethods.includes(key.toLowerCase()));
+}
+
+function isPathItemObject(obj: any): boolean {
+    const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'];
+    return obj && typeof obj === 'object' && Object.keys(obj).some(key => httpMethods.includes(key.toLowerCase()));
+}
+
+function isRequestBodyObject(obj: any): boolean {
+    return obj && typeof obj === 'object' && ('content' in obj || 'description' in obj);
+}
+
+function isMediaTypeObject(obj: any): boolean {
+    return obj && typeof obj === 'object' && ('schema' in obj || 'example' in obj || 'examples' in obj);
+}
+
+function isEncodingObject(obj: any): boolean {
+    return obj && typeof obj === 'object' && ('contentType' in obj || 'style' in obj || 'explode' in obj);
+}
+
+function isHeaderObject(obj: any): boolean {
+    return obj && typeof obj === 'object' && ('description' in obj || 'schema' in obj || 'required' in obj);
+}
+
+function isLinkObject(obj: any): boolean {
+    return obj && typeof obj === 'object' && ('operationRef' in obj || 'operationId' in obj);
+}
+
+function isExampleObject(obj: any): boolean {
+    return obj && typeof obj === 'object' && ('summary' in obj || 'value' in obj || 'externalValue' in obj);
+}
+
+function isDiscriminatorObject(obj: any): boolean {
+    return obj && typeof obj === 'object' && 'propertyName' in obj;
+}
+
+function isXMLObject(obj: any): boolean {
+    return obj && typeof obj === 'object' && ('name' in obj || 'namespace' in obj || 'attribute' in obj);
+}
+
+function isContactObject(obj: any): boolean {
+    return obj && typeof obj === 'object' && ('name' in obj || 'url' in obj || 'email' in obj);
+}
+
+function isLicenseObject(obj: any): boolean {
+    return obj && typeof obj === 'object' && ('name' in obj || 'identifier' in obj || 'url' in obj);
+}
+
+function isOAuthFlowObject(obj: any): boolean {
+    return obj && typeof obj === 'object' && ('authorizationUrl' in obj || 'tokenUrl' in obj || 'scopes' in obj);
+}
+
+function isServerVariableObject(obj: any): boolean {
+    return obj && typeof obj === 'object' && ('enum' in obj || 'default' in obj);
 }
 
 //#endregion
@@ -515,6 +555,12 @@ function getContextKey(path: string, obj: any): string {
         if (path.includes('parameters.')) return 'parameter';
         if (path.includes('responses.')) return 'response';
         if (path.includes('securitySchemes.')) return 'securityScheme';
+        if (path.includes('requestBodies.')) return 'requestBody';
+        if (path.includes('headers.')) return 'header';
+        if (path.includes('examples.')) return 'example';
+        if (path.includes('links.')) return 'link';
+        if (path.includes('callbacks.')) return 'callback';
+        if (path.includes('pathItems.')) return 'pathItem';
     }
 
     // Handle nested paths for Swagger 2.0
@@ -524,6 +570,18 @@ function getContextKey(path: string, obj: any): string {
     // Handle nested paths for operations (parameters, responses, etc.)
     if (path.includes('.parameters.') && path.split('.').length > 3) return 'parameter';
     if (path.includes('.responses.') && path.split('.').length > 3) return 'response';
+    if (path.includes('.requestBody.')) return 'requestBody';
+    if (path.includes('.headers.')) return 'header';
+    if (path.includes('.examples.')) return 'example';
+    if (path.includes('.links.')) return 'link';
+    if (path.includes('.content.')) return 'mediaType';
+    if (path.includes('.encoding.')) return 'encoding';
+    if (path.includes('.discriminator.')) return 'discriminator';
+    if (path.includes('.xml.')) return 'xml';
+    if (path.includes('.contact.')) return 'contact';
+    if (path.includes('.license.')) return 'license';
+    if (path.includes('.flows.')) return 'oauthFlow';
+    if (path.includes('.variables.')) return 'serverVariable';
 
     // Check object types as fallback
     if (isOperationObject(obj)) return 'operation';
@@ -535,75 +593,53 @@ function getContextKey(path: string, obj: any): string {
     if (isTagObject(obj)) return 'tag';
     if (isExternalDocsObject(obj)) return 'externalDocs';
     if (isWebhookObject(obj)) return 'webhook';
+    if (isPathItemObject(obj)) return 'pathItem';
+    if (isRequestBodyObject(obj)) return 'requestBody';
+    if (isMediaTypeObject(obj)) return 'mediaType';
+    if (isEncodingObject(obj)) return 'encoding';
+    if (isHeaderObject(obj)) return 'header';
+    if (isLinkObject(obj)) return 'link';
+    if (isExampleObject(obj)) return 'example';
+    if (isDiscriminatorObject(obj)) return 'discriminator';
+    if (isXMLObject(obj)) return 'xml';
+    if (isContactObject(obj)) return 'contact';
+    if (isLicenseObject(obj)) return 'license';
+    if (isOAuthFlowObject(obj)) return 'oauthFlow';
+    if (isServerVariableObject(obj)) return 'serverVariable';
 
     return 'top-level';
 }
 
 function getStandardKeysForContext(contextKey: string): readonly string[] {
     switch (contextKey) {
-        case 'info': return INFO_KEYS;
-        case 'components': return COMPONENTS_KEYS;
-        case 'operation': return OPERATION_KEYS;
-        case 'parameter': return PARAMETER_KEYS;
-        case 'schema': return SCHEMA_KEYS;
-        case 'response': return RESPONSE_KEYS;
-        case 'securityScheme': return SECURITY_SCHEME_KEYS;
-        case 'server': return SERVER_KEYS;
-        case 'tag': return TAG_KEYS;
-        case 'externalDocs': return EXTERNAL_DOCS_KEYS;
-        case 'webhook': return WEBHOOK_KEYS;
-        case 'definitions': return SCHEMA_KEYS; // Definitions use schema keys
-        case 'securityDefinitions': return SECURITY_SCHEME_KEYS; // Security definitions use security scheme keys
-        default: return TOP_LEVEL_KEYS;
+        case 'info': return InfoKeys;
+        case 'components': return ComponentsKeys;
+        case 'operation': return OperationKeys;
+        case 'parameter': return ParameterKeys;
+        case 'schema': return SchemaKeys;
+        case 'response': return ResponseKeys;
+        case 'securityScheme': return SecuritySchemeKeys;
+        case 'server': return ServerKeys;
+        case 'tag': return TagKeys;
+        case 'externalDocs': return ExternalDocsKeys;
+        case 'webhook': return WebhookKeys;
+        case 'pathItem': return PathItemKeys;
+        case 'requestBody': return RequestBodyKeys;
+        case 'mediaType': return MediaTypeKeys;
+        case 'encoding': return EncodingKeys;
+        case 'header': return HeaderKeys;
+        case 'link': return LinkKeys;
+        case 'example': return ExampleKeys;
+        case 'discriminator': return DiscriminatorKeys;
+        case 'xml': return XMLKeys;
+        case 'contact': return ContactKeys;
+        case 'license': return LicenseKeys;
+        case 'oauthFlow': return OAuthFlowKeys;
+        case 'serverVariable': return ServerVariableKeys;
+        case 'definitions': return SchemaKeys; // Definitions use schema keys
+        case 'securityDefinitions': return SecuritySchemeKeys; // Security definitions use security scheme keys
+        default: return RootKeys;
     }
-}
-
-// ============================================================================
-// CONTEXT-SPECIFIC SORTING FUNCTIONS (using unified sortKeys)
-// ============================================================================
-
-function sortOperationKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    return sortKeys(a, b, OPERATION_KEYS, customExtensions);
-}
-
-function sortParameterKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    return sortKeys(a, b, PARAMETER_KEYS, customExtensions);
-}
-
-function sortSchemaKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    return sortKeys(a, b, SCHEMA_KEYS, customExtensions);
-}
-
-function sortResponseKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    return sortKeys(a, b, RESPONSE_KEYS, customExtensions);
-}
-
-function sortSecuritySchemeKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    return sortKeys(a, b, SECURITY_SCHEME_KEYS, customExtensions);
-}
-
-function sortServerKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    return sortKeys(a, b, SERVER_KEYS, customExtensions);
-}
-
-function sortTagKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    return sortKeys(a, b, TAG_KEYS, customExtensions);
-}
-
-function sortExternalDocsKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    return sortKeys(a, b, EXTERNAL_DOCS_KEYS, customExtensions);
-}
-
-function sortWebhookKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    return sortKeys(a, b, WEBHOOK_KEYS, customExtensions);
-}
-
-function sortDefinitionsKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    return sortKeys(a, b, SCHEMA_KEYS, customExtensions);
-}
-
-function sortSecurityDefinitionsKeysWithExtensions(a: string, b: string, customExtensions: Record<string, number>): number {
-    return sortKeys(a, b, SECURITY_SCHEME_KEYS, customExtensions);
 }
 
 export default plugin;

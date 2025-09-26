@@ -1,0 +1,37 @@
+# Source files
+src/
+test/
+examples/
+
+# Development files
+.github/
+.husky/
+.vscode/
+.idea/
+
+# Configuration files
+.eslintrc.js
+.prettierrc.js
+.prettierignore
+bunfig.toml
+tsconfig.json
+
+# Documentation
+DEVELOPMENT.md
+*.md
+!README.md
+
+# Build artifacts
+coverage/
+*.log
+.DS_Store
+
+# Dependencies
+node_modules/
+bun.lock
+package-lock.json
+yarn.lock
+
+# Git
+.git/
+.gitignore

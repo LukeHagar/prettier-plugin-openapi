@@ -30,15 +30,15 @@ describe('Key Ordering Tests', () => {
       
       // Check that info keys appear in the correct order
       const titleIndex = result.toString().indexOf('"title"');
-      const descriptionIndex = result.toString().indexOf('"description"');
       const versionIndex = result.toString().indexOf('"version"');
+      const descriptionIndex = result.toString().indexOf('"description"');
       const termsOfServiceIndex = result.toString().indexOf('"termsOfService"');
       const contactIndex = result.toString().indexOf('"contact"');
       const licenseIndex = result.toString().indexOf('"license"');
 
-      expect(titleIndex).toBeLessThan(descriptionIndex);
-      expect(descriptionIndex).toBeLessThan(versionIndex);
-      expect(versionIndex).toBeLessThan(termsOfServiceIndex);
+      expect(titleIndex).toBeLessThan(versionIndex);
+      expect(versionIndex).toBeLessThan(descriptionIndex);
+      expect(descriptionIndex).toBeLessThan(termsOfServiceIndex);
       expect(termsOfServiceIndex).toBeLessThan(contactIndex);
       expect(contactIndex).toBeLessThan(licenseIndex);
     });
@@ -82,28 +82,28 @@ describe('Key Ordering Tests', () => {
       }
       
       // Check that operation keys appear in the correct order
-      const tagsIndex = result.toString().indexOf('"tags"');
       const summaryIndex = result.toString().indexOf('"summary"');
-      const descriptionIndex = result.toString().indexOf('"description"');
       const operationIdIndex = result.toString().indexOf('"operationId"');
+      const descriptionIndex = result.toString().indexOf('"description"');
+      const tagsIndex = result.toString().indexOf('"tags"');
+      const deprecatedIndex = result.toString().indexOf('"deprecated"');
+      const securityIndex = result.toString().indexOf('"security"');
+      const serversIndex = result.toString().indexOf('"servers"');
       const parametersIndex = result.toString().indexOf('"parameters"');
       const requestBodyIndex = result.toString().indexOf('"requestBody"');
       const responsesIndex = result.toString().indexOf('"responses"');
       const callbacksIndex = result.toString().indexOf('"callbacks"');
-      const deprecatedIndex = result.toString().indexOf('"deprecated"');
-      const securityIndex = result.toString().indexOf('"security"');
-      const serversIndex = result.toString().indexOf('"servers"');
 
-      expect(tagsIndex).toBeLessThan(summaryIndex);
-      expect(summaryIndex).toBeLessThan(descriptionIndex);
-      expect(descriptionIndex).toBeLessThan(operationIdIndex);
-      expect(operationIdIndex).toBeLessThan(parametersIndex);
+      expect(summaryIndex).toBeLessThan(operationIdIndex);
+      expect(operationIdIndex).toBeLessThan(descriptionIndex);
+      expect(descriptionIndex).toBeLessThan(tagsIndex);
+      expect(tagsIndex).toBeLessThan(deprecatedIndex);
+      expect(deprecatedIndex).toBeLessThan(securityIndex);
+      expect(securityIndex).toBeLessThan(serversIndex);
+      expect(serversIndex).toBeLessThan(parametersIndex);
       expect(parametersIndex).toBeLessThan(requestBodyIndex);
       expect(requestBodyIndex).toBeLessThan(responsesIndex);
       expect(responsesIndex).toBeLessThan(callbacksIndex);
-      expect(callbacksIndex).toBeLessThan(deprecatedIndex);
-      expect(deprecatedIndex).toBeLessThan(securityIndex);
-      expect(securityIndex).toBeLessThan(serversIndex);
     });
   });
 
@@ -170,7 +170,7 @@ describe('Key Ordering Tests', () => {
       // Find the schema section specifically
       const schemaStart = result.toString().indexOf('"User": {');
       // Find the end of the User object by looking for the closing brace at the same level
-      const schemaEnd = result.toString().indexOf('}', result.toString().lastIndexOf('"deprecated": false'));
+      const schemaEnd = result.toString().indexOf('}', result.toString().lastIndexOf('"xml"'));
       const schemaSection = result.toString().substring(schemaStart, schemaEnd + 1);
       
       const typeIndex = schemaSection.indexOf('"type"');
@@ -208,33 +208,35 @@ describe('Key Ordering Tests', () => {
       const deprecatedIndex = schemaSection.indexOf('"deprecated"');
 
       // Test the core ordering - just the most important keys
-      expect(typeIndex).toBeLessThan(formatIndex);
-      expect(formatIndex).toBeLessThan(titleIndex);
       expect(titleIndex).toBeLessThan(descriptionIndex);
-      expect(descriptionIndex).toBeLessThan(defaultIndex);
+      expect(descriptionIndex).toBeLessThan(typeIndex);
+      expect(typeIndex).toBeLessThan(formatIndex);
+      expect(formatIndex).toBeLessThan(constIndex);
+      expect(constIndex).toBeLessThan(enumIndex);
+      expect(enumIndex).toBeLessThan(defaultIndex);
       expect(defaultIndex).toBeLessThan(exampleIndex);
       expect(exampleIndex).toBeLessThan(examplesIndex);
-      expect(examplesIndex).toBeLessThan(enumIndex);
-      expect(enumIndex).toBeLessThan(constIndex);
-      expect(constIndex).toBeLessThan(multipleOfIndex);
+      expect(examplesIndex).toBeLessThan(minimumIndex);
+      expect(minimumIndex).toBeLessThan(exclusiveMinimumIndex);
+      expect(exclusiveMinimumIndex).toBeLessThan(multipleOfIndex);
       expect(multipleOfIndex).toBeLessThan(maximumIndex);
       expect(maximumIndex).toBeLessThan(exclusiveMaximumIndex);
-      expect(exclusiveMaximumIndex).toBeLessThan(minimumIndex);
-      expect(minimumIndex).toBeLessThan(exclusiveMinimumIndex);
-      expect(exclusiveMinimumIndex).toBeLessThan(maxLengthIndex);
-      expect(maxLengthIndex).toBeLessThan(minLengthIndex);
-      expect(minLengthIndex).toBeLessThan(patternIndex);
-      expect(patternIndex).toBeLessThan(maxItemsIndex);
-      expect(maxItemsIndex).toBeLessThan(minItemsIndex);
-      expect(minItemsIndex).toBeLessThan(uniqueItemsIndex);
-      expect(uniqueItemsIndex).toBeLessThan(maxPropertiesIndex);
-      expect(maxPropertiesIndex).toBeLessThan(minPropertiesIndex);
-      expect(minPropertiesIndex).toBeLessThan(requiredIndex);
-      expect(requiredIndex).toBeLessThan(propertiesIndex);
+      expect(exclusiveMaximumIndex).toBeLessThan(patternIndex);
+      expect(patternIndex).toBeLessThan(minLengthIndex);
+      expect(minLengthIndex).toBeLessThan(maxLengthIndex);
+      expect(maxLengthIndex).toBeLessThan(uniqueItemsIndex);
+      expect(uniqueItemsIndex).toBeLessThan(minItemsIndex);
+      expect(minItemsIndex).toBeLessThan(maxItemsIndex);
+      expect(uniqueItemsIndex).toBeLessThan(minPropertiesIndex);
+      expect(minPropertiesIndex).toBeLessThan(maxPropertiesIndex);
+      expect(minPropertiesIndex).toBeLessThan(propertiesIndex);
+      expect(propertiesIndex).toBeLessThan(requiredIndex);
       // Skip the complex ordering for items, allOf, etc. as they might not be in exact order
-      expect(discriminatorIndex).toBeLessThan(xmlIndex);
-      expect(xmlIndex).toBeLessThan(externalDocsIndex);
-      expect(externalDocsIndex).toBeLessThan(deprecatedIndex);
+      expect(discriminatorIndex).toBeLessThan(allOfIndex);
+      expect(allOfIndex).toBeLessThan(anyOfIndex);
+      expect(anyOfIndex).toBeLessThan(oneOfIndex);
+      expect(oneOfIndex).toBeLessThan(notIndex);
+      expect(notIndex).toBeLessThan(xmlIndex);
     });
   });
 
@@ -346,9 +348,9 @@ describe('Key Ordering Tests', () => {
       const examplesIndex = paramSection.indexOf('"examples"');
 
       // Test the core parameter ordering
-      expect(nameIndex).toBeLessThan(inIndex);
-      expect(inIndex).toBeLessThan(descriptionIndex);
-      expect(descriptionIndex).toBeLessThan(requiredIndex);
+      expect(nameIndex).toBeLessThan(descriptionIndex);
+      expect(descriptionIndex).toBeLessThan(inIndex);
+      expect(inIndex).toBeLessThan(requiredIndex);
       expect(requiredIndex).toBeLessThan(deprecatedIndex);
       expect(deprecatedIndex).toBeLessThan(allowEmptyValueIndex);
       expect(allowEmptyValueIndex).toBeLessThan(styleIndex);
@@ -408,13 +410,13 @@ describe('Key Ordering Tests', () => {
       const flowsIndex = result.toString().indexOf('"flows"');
       const openIdConnectUrlIndex = result.toString().indexOf('"openIdConnectUrl"');
 
-      expect(typeIndex).toBeLessThan(descriptionIndex);
-      expect(descriptionIndex).toBeLessThan(nameIndex);
-      expect(nameIndex).toBeLessThan(inIndex);
+      expect(nameIndex).toBeLessThan(descriptionIndex);
+      expect(descriptionIndex).toBeLessThan(typeIndex);
+      expect(typeIndex).toBeLessThan(inIndex);
       expect(inIndex).toBeLessThan(schemeIndex);
       expect(schemeIndex).toBeLessThan(bearerFormatIndex);
-      expect(bearerFormatIndex).toBeLessThan(flowsIndex);
-      expect(flowsIndex).toBeLessThan(openIdConnectUrlIndex);
+      expect(bearerFormatIndex).toBeLessThan(openIdConnectUrlIndex);
+      expect(openIdConnectUrlIndex).toBeLessThan(flowsIndex);
     });
   });
 
@@ -451,12 +453,14 @@ describe('Key Ordering Tests', () => {
       const serverEnd = result.toString().indexOf('}', result.toString().lastIndexOf('"variables"'));
       const serverSection = result.toString().substring(serverStart, serverEnd + 1);
       
-      const urlIndex = serverSection.indexOf('"url"');
+      const nameIndex = serverSection.indexOf('"name"');
       const descriptionIndex = serverSection.indexOf('"description"');
+      const urlIndex = serverSection.indexOf('"url"');
       const variablesIndex = serverSection.indexOf('"variables"');
 
-      expect(urlIndex).toBeLessThan(descriptionIndex);
-      expect(descriptionIndex).toBeLessThan(variablesIndex);
+      expect(nameIndex).toBeLessThan(descriptionIndex);
+      expect(descriptionIndex).toBeLessThan(urlIndex);
+      expect(urlIndex).toBeLessThan(variablesIndex);
     });
   });
 

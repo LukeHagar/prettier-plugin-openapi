@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 import { getVendorExtensions } from '../src/extensions';
 
 describe('Vendor Extension System', () => {
@@ -11,8 +11,8 @@ describe('Vendor Extension System', () => {
     
     // Check if extensions were loaded
     expect(vendorExtensions['top-level']).toBeDefined();
-    expect(vendorExtensions['top-level']['x-speakeasy-sdk']).toBe(2); // before('info') = position 2
-    expect(vendorExtensions['top-level']['x-speakeasy-auth']).toBe(11); // after('paths') = position 11
+    expect(vendorExtensions['top-level']['x-speakeasy-sdk']).toBe(3); // before('info') = position 3
+    expect(vendorExtensions['top-level']['x-speakeasy-auth']).toBe(14); // after('paths') = position 14
   });
 
 
@@ -33,7 +33,7 @@ describe('Vendor Extension System', () => {
     expect(vendorExtensions['schema']).toBeDefined();
     
     // Check specific extensions
-    expect(vendorExtensions['top-level']['x-speakeasy-sdk']).toBe(2); // before('info') = position 2
-    expect(vendorExtensions['top-level']['x-speakeasy-auth']).toBe(11); // after('paths') = position 11
+    expect(vendorExtensions['top-level']['x-speakeasy-sdk']).toBe(3); // before('info') = position 3
+    expect(vendorExtensions['top-level']['x-speakeasy-auth']).toBe(14); // after('paths') = position 14
   });
 });

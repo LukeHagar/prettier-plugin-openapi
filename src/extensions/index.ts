@@ -7,25 +7,24 @@
 
 // Import key arrays for type generation
 import {
-  TOP_LEVEL_KEYS,
-  INFO_KEYS,
-  OPERATION_KEYS,
-  PARAMETER_KEYS,
-  SCHEMA_KEYS,
-  RESPONSE_KEYS,
-  SECURITY_SCHEME_KEYS,
-  SERVER_KEYS,
-  TAG_KEYS,
-  EXTERNAL_DOCS_KEYS,
-  WEBHOOK_KEYS,
-  OAUTH_FLOW_KEYS,
-  CONTACT_KEYS,
-  LICENSE_KEYS,
-  COMPONENTS_KEYS,
-  SERVER_VARIABLE_KEYS,
-  SWAGGER_2_0_KEYS
-} from '../keys';
-import { getVendorExtensions as loadVendorExtensions } from './vendor-loader';
+  RootKeys,
+  InfoKeys,
+  OperationKeys,
+  ParameterKeys,
+  SchemaKeys,
+  ResponseKeys,
+  SecuritySchemeKeys,
+  ServerKeys,
+  TagKeys,
+  ExternalDocsKeys,
+  WebhookKeys,
+  OAuthFlowKeys,
+  ContactKeys,
+  LicenseKeys,
+  ComponentsKeys,
+  ServerVariableKeys,
+} from '../keys.js';
+import { getVendorExtensions as loadVendorExtensions, VendorModule } from './vendor-loader.js';
 
 export interface VendorExtensions {
   [context: string]: (
@@ -51,28 +50,27 @@ export interface VendorExtensions {
 }
 
 // Helper function similar to Vite's defineConfig
-export function defineVendorExtensions(config: VendorExtensions): VendorExtensions {
+export function defineConfig(config: VendorModule): VendorModule {
   return config;
 }
 
 // Type definitions with hover documentation
-export type TopLevelKeys = typeof TOP_LEVEL_KEYS[number];
-export type InfoKeys = typeof INFO_KEYS[number];
-export type OperationKeys = typeof OPERATION_KEYS[number];
-export type ParameterKeys = typeof PARAMETER_KEYS[number];
-export type SchemaKeys = typeof SCHEMA_KEYS[number];
-export type ResponseKeys = typeof RESPONSE_KEYS[number];
-export type SecuritySchemeKeys = typeof SECURITY_SCHEME_KEYS[number];
-export type ServerKeys = typeof SERVER_KEYS[number];
-export type TagKeys = typeof TAG_KEYS[number];
-export type ExternalDocsKeys = typeof EXTERNAL_DOCS_KEYS[number];
-export type WebhookKeys = typeof WEBHOOK_KEYS[number];
-export type OAuthFlowKeys = typeof OAUTH_FLOW_KEYS[number];
-export type ContactKeys = typeof CONTACT_KEYS[number];
-export type LicenseKeys = typeof LICENSE_KEYS[number];
-export type ComponentsKeys = typeof COMPONENTS_KEYS[number];
-export type ServerVariableKeys = typeof SERVER_VARIABLE_KEYS[number];
-export type Swagger20Keys = typeof SWAGGER_2_0_KEYS[number];
+export type TopLevelKeys = typeof RootKeys[number];
+export type InfoKeys = typeof InfoKeys[number];
+export type OperationKeys = typeof OperationKeys[number];
+export type ParameterKeys = typeof ParameterKeys[number];
+export type SchemaKeys = typeof SchemaKeys[number];
+export type ResponseKeys = typeof ResponseKeys[number];
+export type SecuritySchemeKeys = typeof SecuritySchemeKeys[number];
+export type ServerKeys = typeof ServerKeys[number];
+export type TagKeys = typeof TagKeys[number];
+export type ExternalDocsKeys = typeof ExternalDocsKeys[number];
+export type WebhookKeys = typeof WebhookKeys[number];
+export type OAuthFlowKeys = typeof OAuthFlowKeys[number];
+export type ContactKeys = typeof ContactKeys[number];
+export type LicenseKeys = typeof LicenseKeys[number];
+export type ComponentsKeys = typeof ComponentsKeys[number];
+export type ServerVariableKeys = typeof ServerVariableKeys[number];
 
 // Context-specific key types for better IntelliSense
 export interface ContextKeys {
@@ -94,19 +92,19 @@ export interface ContextKeys {
 // Helper function to get available keys for a context
 export function getContextKeys<T extends keyof ContextKeys>(context: T): readonly string[] {
   switch (context) {
-    case 'top-level': return TOP_LEVEL_KEYS;
-    case 'info': return INFO_KEYS;
-    case 'operation': return OPERATION_KEYS;
-    case 'parameter': return PARAMETER_KEYS;
-    case 'schema': return SCHEMA_KEYS;
-    case 'response': return RESPONSE_KEYS;
-    case 'securityScheme': return SECURITY_SCHEME_KEYS;
-    case 'server': return SERVER_KEYS;
-    case 'tag': return TAG_KEYS;
-    case 'externalDocs': return EXTERNAL_DOCS_KEYS;
-    case 'webhook': return WEBHOOK_KEYS;
-    case 'definitions': return SCHEMA_KEYS;
-    case 'securityDefinitions': return SECURITY_SCHEME_KEYS;
+    case 'top-level': return RootKeys;
+    case 'info': return InfoKeys;
+    case 'operation': return OperationKeys;
+    case 'parameter': return ParameterKeys;
+    case 'schema': return SchemaKeys;
+    case 'response': return ResponseKeys;
+    case 'securityScheme': return SecuritySchemeKeys;
+    case 'server': return ServerKeys;
+    case 'tag': return TagKeys;
+    case 'externalDocs': return ExternalDocsKeys;
+    case 'webhook': return WebhookKeys;
+    case 'definitions': return SchemaKeys;
+    case 'securityDefinitions': return SecuritySchemeKeys;
     default: return [];
   }
 }
@@ -130,7 +128,7 @@ export function after<T extends keyof ContextKeys>(context: T, key: string): num
 
 
 // Dynamic vendor loading - loads all vendor files automatically
-export function getVendorExtensions(): Record<string, Record<string, number>> {
-  return loadVendorExtensions();
+export function getVendorExtensions(customVendorModules?: VendorModule[]): Record<string, Record<string, number>> {
+  return loadVendorExtensions(customVendorModules);
 }
 

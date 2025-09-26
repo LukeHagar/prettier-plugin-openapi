@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 import plugin from '../src/index';
 
 describe('Custom Extensions Support', () => {
@@ -222,9 +222,9 @@ describe('Custom Extensions Support', () => {
       const xApiIdIndex = result.toString().indexOf('"x-api-id"');
       const xVersionInfoIndex = result.toString().indexOf('"x-version-info"');
 
-      expect(titleIndex).toBeLessThan(descriptionIndex);
-      expect(descriptionIndex).toBeLessThan(versionIndex);
-      expect(versionIndex).toBeLessThan(xApiIdIndex);
+      expect(titleIndex).toBeLessThan(versionIndex);
+      expect(versionIndex).toBeLessThan(descriptionIndex);
+      expect(descriptionIndex).toBeLessThan(xApiIdIndex);
       expect(xApiIdIndex).toBeLessThan(xVersionInfoIndex);
     });
 
@@ -347,7 +347,10 @@ describe('Custom Extensions Support', () => {
 
       expect(openapiIndex).toBeLessThan(infoIndex);
       expect(infoIndex).toBeLessThan(pathsIndex);
+      // Unknown keys should come after standard keys
       expect(pathsIndex).toBeLessThan(anotherUnknownIndex);
+      expect(pathsIndex).toBeLessThan(unknownFieldIndex);
+      // Unknown keys should be sorted alphabetically
       expect(anotherUnknownIndex).toBeLessThan(unknownFieldIndex);
     });
 
@@ -386,9 +389,12 @@ describe('Custom Extensions Support', () => {
 
       expect(openapiIndex).toBeLessThan(infoIndex);
       expect(infoIndex).toBeLessThan(pathsIndex);
+      // Standard keys should come first
       expect(pathsIndex).toBeLessThan(xCustomFieldIndex);
-      expect(xCustomFieldIndex).toBeLessThan(xMetadataIndex);
-      expect(xMetadataIndex).toBeLessThan(anotherUnknownIndex);
+      expect(pathsIndex).toBeLessThan(xMetadataIndex);
+      expect(pathsIndex).toBeLessThan(anotherUnknownIndex);
+      expect(pathsIndex).toBeLessThan(unknownFieldIndex);
+      // Unknown keys should be sorted alphabetically
       expect(anotherUnknownIndex).toBeLessThan(unknownFieldIndex);
     });
   });

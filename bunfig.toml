@@ -1,0 +1,12 @@
+[test]
+# Test configuration for Bun
+preload = ["./test/setup.ts"]
+timeout = 30000
+coverage = true
+coverageDir = "coverage"
+coverageReporter = ["text", "lcov"]
+
+[install]
+# Install configuration
+cache = true
+production = false

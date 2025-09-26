@@ -1,6 +1,6 @@
 {
   "name": "prettier-plugin-openapi",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Prettier plugin for formatting OpenAPI/Swagger JSON and YAML files",
   "author": {
     "name": "Luke Hagar",
@@ -16,11 +16,38 @@
     "README.md",
     "LICENSE"
   ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lukehagar/prettier-plugin-openapi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lukehagar/prettier-plugin-openapi/issues"
+  },
+  "homepage": "https://github.com/lukehagar/prettier-plugin-openapi#readme",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
+    "pretest": "tsc",
     "test": "bun test",
-    "prepublishOnly": "bun run build"
+    "test:coverage": "bun test --coverage",
+    "test:watch": "bun test --watch",
+    "test:ci": "bun test --reporter=verbose",
+    "lint": "eslint src/**/*.ts test/**/*.ts --ext .ts",
+    "lint:fix": "eslint src/**/*.ts test/**/*.ts --ext .ts --fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"*.{json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"*.{json,md,yml,yaml}\"",
+    "clean": "rm -rf dist coverage",
+    "prebuild": "bun run clean",
+    "prepublishOnly": "bun run build && bun run test && bun run lint",
+    "publish:package": "npm publish",
+    "version:patch": "npm version patch",
+    "version:minor": "npm version minor",
+    "version:major": "npm version major",
+    "validate": "bun run type-check && bun run lint && bun run test"
   },
   "keywords": [
     "prettier",
@@ -37,6 +64,12 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.0",
     "typescript": "^5.0.0"
   },
   "dependencies": {

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+.vscode/
+.idea/
+*.min.js
+*.min.css
+bun.lock
+package-lock.json
+yarn.lock
