@@ -29,7 +29,7 @@
         "useConst": "error"
       },
       "suspicious": {
-        "noConsole": "warn",
+        "noConsole": "off",
         "noVar": "error"
       }
     }
