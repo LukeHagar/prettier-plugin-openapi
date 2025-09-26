@@ -33,9 +33,10 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Use Node 20
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20
+            node-version: latest
+            registry-url: https://registry.npmjs.org
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
@@ -132,9 +133,9 @@ jobs:
 
       # Publish to npm (requires NPM_TOKEN in repo secrets)
       - name: Publish to npm
-        run: npm publish
+        run: npm publish --provenance --access public
         env:
-            NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # Create a GitHub Release for the tag
       - name: Create GitHub Release
