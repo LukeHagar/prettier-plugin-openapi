@@ -131,6 +131,8 @@ api.yaml                    # Single file with everything
 
 The plugin automatically sorts OpenAPI keys in the recommended order:
 
+> 📖 **Complete Key Reference**: For a comprehensive reference of all keys, their ordering, and detailed reasoning, see [KEYS.md](./KEYS.md).
+
 ### Top-level keys:
 1. `openapi` / `swagger`
 2. `info`

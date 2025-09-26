@@ -48,7 +48,7 @@ export function getVendorExtensions(customVendorModules?: VendorModule[]): Recor
   
   for (const vendorModule of modulesToLoad) {
     try {
-      if (vendorModule && vendorModule.extensions) {
+      if (vendorModule?.extensions) {
         for (const [context, contextFunction] of Object.entries(vendorModule.extensions)) {
           if (typeof contextFunction === 'function') {
             // Create context-specific before/after functions

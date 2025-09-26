@@ -359,7 +359,7 @@ function sortResponseCodes(a: string, b: string): number {
     const aNum = parseInt(a);
     const bNum = parseInt(b);
 
-    if (!isNaN(aNum) && !isNaN(bNum)) {
+    if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
         return aNum - bNum;
     }
 
