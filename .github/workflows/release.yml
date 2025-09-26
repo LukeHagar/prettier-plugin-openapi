@@ -117,7 +117,7 @@ jobs:
           git config --local user.name "GitHub Action"
           git add package.json
           git commit -m "chore: auto-bump version to ${{ steps.bump-version.outputs.version }}"
-          git push origin main
+          git push origin HEAD:main
 
       # Create a git tag like v1.2.3 if it doesn't already exist
       - name: Create tag if missing
