@@ -30,6 +30,8 @@ A Prettier plugin for formatting OpenAPI/Swagger JSON and YAML files with intell
 ```bash
 npm install --save-dev prettier-plugin-openapi
 # or
+pnpm add --dev prettier-plugin-openapi
+# or
 yarn add --dev prettier-plugin-openapi
 # or
 bun add --dev prettier-plugin-openapi
@@ -41,13 +43,13 @@ bun add --dev prettier-plugin-openapi
 
 ```bash
 # Format a single file
-npx prettier --write api.yaml
+pnpx prettier --write api.yaml
 
 # Format all OpenAPI files in a directory
-npx prettier --write "**/*.{openapi.json,openapi.yaml,swagger.json,swagger.yaml}"
+pnpx prettier --write "**/*.{openapi.json,openapi.yaml,swagger.json,swagger.yaml}"
 
 # Format with specific options
-npx prettier --write api.yaml --tab-width 4 --print-width 100
+pnpx prettier --write api.yaml --tab-width 4 --print-width 100
 ```
 
 ### Configuration
