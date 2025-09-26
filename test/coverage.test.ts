@@ -4,77 +4,77 @@ import plugin from '../src/index';
 describe('Coverage Tests', () => {
   describe('Error handling and edge cases', () => {
     it('should handle null and undefined content', () => {
-      const jsonParser = plugin.parsers?.['openapi-json-parser'];
-      expect(jsonParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       // Test with null content
       expect(() => {
         // @ts-expect-error We are testing edge cases
-        jsonParser?.parse('null', {});
+        parser?.parse('null', { filepath: 'test.json' });
       }).toThrow();
 
       // Test with undefined content
       expect(() => {
         // @ts-expect-error We are testing edge cases
-        jsonParser?.parse('undefined', {});
+        parser?.parse('undefined', { filepath: 'test.json' });
       }).toThrow();
     });
 
     it('should handle non-object content', () => {
-      const jsonParser = plugin.parsers?.['openapi-json-parser'];
-      expect(jsonParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       // Test with string content
       expect(() => {
         // @ts-expect-error We are testing edge cases
-        jsonParser?.parse('"string"', {});
+        parser?.parse('"string"', { filepath: 'test.json' });
       }).toThrow();
 
       // Test with number content
       expect(() => {
         // @ts-expect-error We are testing edge cases
-        jsonParser?.parse('123', {});
+        parser?.parse('123', { filepath: 'test.json' });
       }).toThrow();
     });
 
     it('should handle array content', () => {
-      const jsonParser = plugin.parsers?.['openapi-json-parser'];
-      expect(jsonParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       // Test with array content
       expect(() => {
         // @ts-expect-error We are testing edge cases
-        jsonParser?.parse('[]', {});
+        parser?.parse('[]', { filepath: 'test.json' });
       }).toThrow();
     });
 
     it('should handle malformed JSON', () => {
-      const jsonParser = plugin.parsers?.['openapi-json-parser'];
-      expect(jsonParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       // Test with malformed JSON
       expect(() => {
         // @ts-expect-error We are testing edge cases
-        jsonParser?.parse('{invalid json}', {});
+        parser?.parse('{invalid json}', { filepath: 'test.json' });
       }).toThrow('Failed to parse OpenAPI JSON');
     });
 
     it('should handle malformed YAML', () => {
-      const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-      expect(yamlParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       // Test with malformed YAML
       expect(() => {
         // @ts-expect-error We are testing edge cases
-        yamlParser?.parse('invalid: yaml: content:', {});
+        parser?.parse('invalid: yaml: content:', { filepath: 'test.yaml' });
       }).toThrow('Failed to parse OpenAPI YAML');
     });
   });
 
   describe('File path detection', () => {
     it('should detect OpenAPI files in component directories', () => {
-      const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-      expect(yamlParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       const testYaml = `type: object
 properties:
@@ -98,15 +98,16 @@ properties:
 
       paths.forEach(path => {
         // @ts-expect-error We are testing edge cases
-        const result = yamlParser?.parse(testYaml, { filepath: path });
+        const result = parser?.parse(testYaml, { filepath: path });
         expect(result).toBeDefined();
-        expect(result?.type).toBe('openapi-yaml');
+        expect(result?.type).toBe('openapi');
+        expect(result?.format).toBe('yaml');
       });
     });
 
     it('should handle files without filepath', () => {
-      const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-      expect(yamlParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       const testYaml = `openapi: 3.0.0
 info:
@@ -114,16 +115,16 @@ info:
   version: 1.0.0`;
 
       // @ts-expect-error We are testing edge cases
-      const result = yamlParser?.parse(testYaml, {});
+      const result = parser?.parse(testYaml, { filepath: 'test.yaml' });
       expect(result).toBeDefined();
-      expect(result?.type).toBe('openapi-yaml');
+      expect(result?.type).toBe('openapi');
     });
   });
 
   describe('Object type detection', () => {
     it('should detect operation objects', () => {
-      const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-      expect(yamlParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       const operationYaml = `get:
   summary: Get users
@@ -132,14 +133,14 @@ info:
       description: Success`;
 
       // @ts-expect-error We are testing edge cases
-      const result = yamlParser?.parse(operationYaml, { filepath: 'paths/users.yaml' });
+      const result = parser?.parse(operationYaml, { filepath: 'paths/users.yaml' });
       expect(result).toBeDefined();
-      expect(result?.type).toBe('openapi-yaml');
+      expect(result?.type).toBe('openapi');
     });
 
     it('should detect parameter objects', () => {
-      const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-      expect(yamlParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       const parameterYaml = `name: id
 in: path
@@ -148,14 +149,14 @@ schema:
   type: integer`;
 
       // @ts-expect-error We are testing edge cases
-      const result = yamlParser?.parse(parameterYaml, { filepath: 'components/parameters/UserId.yaml' });
+      const result = parser?.parse(parameterYaml, { filepath: 'components/parameters/UserId.yaml' });
       expect(result).toBeDefined();
-      expect(result?.type).toBe('openapi-yaml');
+      expect(result?.type).toBe('openapi');
     });
 
     it('should detect schema objects', () => {
-      const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-      expect(yamlParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       const schemaYaml = `type: object
 properties:
@@ -167,14 +168,14 @@ required:
   - id`;
 
       // @ts-expect-error We are testing edge cases
-      const result = yamlParser?.parse(schemaYaml, { filepath: 'components/schemas/User.yaml' });
+      const result = parser?.parse(schemaYaml, { filepath: 'components/schemas/User.yaml' });
       expect(result).toBeDefined();
-      expect(result?.type).toBe('openapi-yaml');
+      expect(result?.type).toBe('openapi');
     });
 
     it('should detect response objects', () => {
-      const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-      expect(yamlParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       const responseYaml = `description: User response
 content:
@@ -183,67 +184,67 @@ content:
       type: object`;
 
       // @ts-expect-error We are testing edge cases
-      const result = yamlParser?.parse(responseYaml, { filepath: 'components/responses/UserResponse.yaml' });
+      const result = parser?.parse(responseYaml, { filepath: 'components/responses/UserResponse.yaml' });
       expect(result).toBeDefined();
-      expect(result?.type).toBe('openapi-yaml');
+      expect(result?.type).toBe('openapi');
     });
 
     it('should detect security scheme objects', () => {
-      const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-      expect(yamlParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       const securityYaml = `type: http
 scheme: bearer
 bearerFormat: JWT`;
 
       // @ts-expect-error We are testing edge cases
-      const result = yamlParser?.parse(securityYaml, { filepath: 'components/securitySchemes/BearerAuth.yaml' });
+      const result = parser?.parse(securityYaml, { filepath: 'components/securitySchemes/BearerAuth.yaml' });
       expect(result).toBeDefined();
-      expect(result?.type).toBe('openapi-yaml');
+      expect(result?.type).toBe('openapi');
     });
 
     it('should detect server objects', () => {
-      const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-      expect(yamlParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       const serverYaml = `url: https://api.example.com
 description: Production server`;
 
       // @ts-expect-error We are testing edge cases
-      const result = yamlParser?.parse(serverYaml, { filepath: 'servers/production.yaml' });
+      const result = parser?.parse(serverYaml, { filepath: 'servers/production.yaml' });
       expect(result).toBeDefined();
-      expect(result?.type).toBe('openapi-yaml');
+      expect(result?.type).toBe('openapi');
     });
 
     it('should detect tag objects', () => {
-      const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-      expect(yamlParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       const tagYaml = `name: users
 description: User management operations`;
 
       // @ts-expect-error We are testing edge cases
-      const result = yamlParser?.parse(tagYaml, { filepath: 'tags/users.yaml' });
+      const result = parser?.parse(tagYaml, { filepath: 'tags/users.yaml' });
       expect(result).toBeDefined();
-      expect(result?.type).toBe('openapi-yaml');
+      expect(result?.type).toBe('openapi');
     });
 
     it('should detect external docs objects', () => {
-      const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-      expect(yamlParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       const externalDocsYaml = `url: https://example.com/docs
 description: External documentation`;
 
       // @ts-expect-error We are testing edge cases
-      const result = yamlParser?.parse(externalDocsYaml, { filepath: 'externalDocs/api.yaml' });
+      const result = parser?.parse(externalDocsYaml, { filepath: 'externalDocs/api.yaml' });
       expect(result).toBeDefined();
-      expect(result?.type).toBe('openapi-yaml');
+      expect(result?.type).toBe('openapi');
     });
 
     it('should detect webhook objects', () => {
-      const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-      expect(yamlParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       const webhookYaml = `post:
   summary: New message webhook
@@ -252,18 +253,19 @@ description: External documentation`;
       description: Success`;
 
       // @ts-expect-error We are testing edge cases
-      const result = yamlParser?.parse(webhookYaml, { filepath: 'webhooks/messageCreated.yaml' });
+      const result = parser?.parse(webhookYaml, { filepath: 'webhooks/messageCreated.yaml' });
       expect(result).toBeDefined();
-      expect(result?.type).toBe('openapi-yaml');
+      expect(result?.type).toBe('openapi');
     });
   });
 
   describe('Sorting functions', () => {
     it('should handle path sorting by specificity', () => {
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
+        type: 'openapi',
         content: {
           openapi: '3.0.0',
           info: { title: 'Test API', version: '1.0.0' },
@@ -272,11 +274,13 @@ description: External documentation`;
             '/users': { get: {} },
             '/users/{id}/posts': { get: {} }
           }
-        }
+        },
+        originalText: '',
+        format: 'json'
       };
 
       // @ts-expect-error We are testing edge cases
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
       
       if (result && typeof result === 'string') {
@@ -290,10 +294,11 @@ description: External documentation`;
     });
 
     it('should handle response code sorting', () => {
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
+        type: 'openapi',
         content: {
           openapi: '3.0.0',
           info: { title: 'Test API', version: '1.0.0' },
@@ -308,11 +313,13 @@ description: External documentation`;
               }
             }
           }
-        }
+        },
+        originalText: '',
+        format: 'json'
       };
 
       // @ts-expect-error We are testing edge cases
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
       
       if (result && typeof result === 'string') {
@@ -328,10 +335,11 @@ description: External documentation`;
 
   describe('Context key detection', () => {
     it('should handle nested path contexts', () => {
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
+        type: 'openapi',
         content: {
           openapi: '3.0.0',
           info: { title: 'Test API', version: '1.0.0' },
@@ -346,11 +354,13 @@ description: External documentation`;
               }
             }
           }
-        }
+        },
+        originalText: '',
+        format: 'json'
       };
 
       // @ts-expect-error We are testing edge cases
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
       
       if (result && typeof result === 'string') {

@@ -3,11 +3,11 @@ import plugin from '../dist/index.js';
 
 describe('Prettier OpenAPI Plugin', () => {
   it('should format OpenAPI JSON files', () => {
-    const jsonParser = plugin.parsers?.['openapi-json-parser'];
-    const jsonPrinter = plugin.printers?.['openapi-json-ast'];
+    const parser = plugin.parsers?.['openapi-parser'];
+    const printer = plugin.printers?.['openapi-ast'];
     
-    expect(jsonParser).toBeDefined();
-    expect(jsonPrinter).toBeDefined();
+    expect(parser).toBeDefined();
+    expect(printer).toBeDefined();
 
     const inputJson = `{
   "paths": {
@@ -30,14 +30,15 @@ describe('Prettier OpenAPI Plugin', () => {
 
     // Parse the JSON
     // @ts-expect-error We are mocking things here
-    const parsed = jsonParser?.parse(inputJson, {});
+    const parsed = parser?.parse(inputJson, { filepath: 'test.json' });
     expect(parsed).toBeDefined();
-    expect(parsed?.type).toBe('openapi-json');
+    expect(parsed?.type).toBe('openapi');
+    expect(parsed?.format).toBe('json');
     expect(parsed?.content).toBeDefined();
 
     // Format the parsed content
     // @ts-expect-error We are mocking things here
-    const result = jsonPrinter?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
+    const result = printer?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
     
     expect(result).toBeDefined();
     expect(result).toContain('"openapi"');
@@ -58,11 +59,11 @@ describe('Prettier OpenAPI Plugin', () => {
   });
 
   it('should format OpenAPI YAML files', () => {
-    const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-    const yamlPrinter = plugin.printers?.['openapi-yaml-ast'];
+    const parser = plugin.parsers?.['openapi-parser'];
+    const printer = plugin.printers?.['openapi-ast'];
     
-    expect(yamlParser).toBeDefined();
-    expect(yamlPrinter).toBeDefined();
+    expect(parser).toBeDefined();
+    expect(printer).toBeDefined();
 
     const inputYaml = `paths:
   /test:
@@ -77,14 +78,15 @@ openapi: 3.0.0`;
 
     // Parse the YAML
     // @ts-expect-error We are mocking things here
-    const parsed = yamlParser?.parse(inputYaml, {});
+    const parsed = parser?.parse(inputYaml, { filepath: 'test.yaml' });
     expect(parsed).toBeDefined();
-    expect(parsed?.type).toBe('openapi-yaml');
+    expect(parsed?.type).toBe('openapi');
+    expect(parsed?.format).toBe('yaml');
     expect(parsed?.content).toBeDefined();
 
     // Format the parsed content
     // @ts-expect-error We are mocking things here
-    const result = yamlPrinter?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
+    const result = printer?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
     
     expect(result).toBeDefined();
     expect(result).toContain('openapi:');
@@ -112,11 +114,11 @@ openapi: 3.0.0`;
   });
 
   it('should format Swagger 2.0 JSON files', () => {
-    const jsonParser = plugin.parsers?.['openapi-json-parser'];
-    const jsonPrinter = plugin.printers?.['openapi-json-ast'];
+    const parser = plugin.parsers?.['openapi-parser'];
+    const printer = plugin.printers?.['openapi-ast'];
     
-    expect(jsonParser).toBeDefined();
-    expect(jsonPrinter).toBeDefined();
+    expect(parser).toBeDefined();
+    expect(printer).toBeDefined();
 
     const inputJson = `{
   "paths": {
@@ -144,14 +146,15 @@ openapi: 3.0.0`;
 
     // Parse the JSON
     // @ts-expect-error We are mocking things here
-    const parsed = jsonParser?.parse(inputJson, {});
+    const parsed = parser?.parse(inputJson, { filepath: 'test.json' });
     expect(parsed).toBeDefined();
-    expect(parsed?.type).toBe('openapi-json');
+    expect(parsed?.type).toBe('openapi');
+    expect(parsed?.format).toBe('json');
     expect(parsed?.content).toBeDefined();
 
     // Format the parsed content
     // @ts-expect-error We are mocking things here
-    const result = jsonPrinter?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
+    const result = printer?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
     
     expect(result).toBeDefined();
     expect(result).toContain('"swagger"');
@@ -178,11 +181,11 @@ openapi: 3.0.0`;
 describe('Key Ordering Tests', () => {
   describe('Top-level key ordering', () => {
     it('should sort OpenAPI 3.0+ keys correctly', () => {
-      const jsonParser = plugin.parsers?.['openapi-json-parser'];
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
+      const parser = plugin.parsers?.['openapi-parser'];
+      const printer = plugin.printers?.['openapi-ast'];
       
-      expect(jsonParser).toBeDefined();
-      expect(jsonPrinter).toBeDefined();
+      expect(parser).toBeDefined();
+      expect(printer).toBeDefined();
 
       const inputJson = `{
   "paths": { "/test": { "get": {} } },
@@ -196,14 +199,15 @@ describe('Key Ordering Tests', () => {
 
       // Parse the JSON
       // @ts-expect-error We are mocking things here
-      const parsed = jsonParser?.parse(inputJson, {});
+      const parsed = parser?.parse(inputJson, { filepath: 'test.json' });
       expect(parsed).toBeDefined();
-      expect(parsed?.type).toBe('openapi-json');
+      expect(parsed?.type).toBe('openapi');
+      expect(parsed?.format).toBe('json');
       expect(parsed?.content).toBeDefined();
 
       // Format the parsed content
       // @ts-expect-error We are mocking things here
-      const result = jsonPrinter?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
 
       expect(result).toBeDefined();
 
@@ -229,11 +233,11 @@ describe('Key Ordering Tests', () => {
     });
 
     it('should sort Swagger 2.0 keys correctly', () => {
-      const jsonParser = plugin.parsers?.['openapi-json-parser'];
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
+      const parser = plugin.parsers?.['openapi-parser'];
+      const printer = plugin.printers?.['openapi-ast'];
       
-      expect(jsonParser).toBeDefined();
-      expect(jsonPrinter).toBeDefined();
+      expect(parser).toBeDefined();
+      expect(printer).toBeDefined();
 
       const inputJson = `{
   "paths": { "/test": { "get": {} } },
@@ -255,14 +259,15 @@ describe('Key Ordering Tests', () => {
 
       // Parse the JSON
       // @ts-expect-error We are mocking things here
-      const parsed = jsonParser?.parse(inputJson, {});
+      const parsed = parser?.parse(inputJson, { filepath: 'test.json' });
       expect(parsed).toBeDefined();
-      expect(parsed?.type).toBe('openapi-json');
+      expect(parsed?.type).toBe('openapi');
+      expect(parsed?.format).toBe('json');
       expect(parsed?.content).toBeDefined();
 
       // Format the parsed content
       // @ts-expect-error We are mocking things here
-      const result = jsonPrinter?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
 
       expect(result).toBeDefined();
 

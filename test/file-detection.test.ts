@@ -3,8 +3,8 @@ import plugin from '../src/index';
 
 describe('File Detection Tests', () => {
   it('should detect OpenAPI root files', () => {
-    const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-    expect(yamlParser).toBeDefined();
+    const parser = plugin.parsers?.['openapi-parser'];
+    expect(parser).toBeDefined();
 
     const testYaml = `openapi: 3.0.0
 info:
@@ -18,16 +18,17 @@ paths:
           description: Success`;
 
     // @ts-expect-error We are mocking things here
-    const result = yamlParser?.parse(testYaml, { filepath: 'openapi.yaml' });
+    const result = parser?.parse(testYaml, { filepath: 'openapi.yaml' });
     
     expect(result).toBeDefined();
-    expect(result?.type).toBe('openapi-yaml');
+    expect(result?.type).toBe('openapi');
+    expect(result?.format).toBe('yaml');
     expect(result?.content.openapi).toBe('3.0.0');
   });
 
   it('should detect partial schema files', () => {
-    const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-    expect(yamlParser).toBeDefined();
+    const parser = plugin.parsers?.['openapi-parser'];
+    expect(parser).toBeDefined();
 
     const schemaYaml = `type: object
 properties:
@@ -40,16 +41,17 @@ required:
   - name`;
 
     // @ts-expect-error We are mocking things here
-    const result = yamlParser?.parse(schemaYaml, { filepath: 'components/schemas/User.yaml' });
+    const result = parser?.parse(schemaYaml, { filepath: 'components/schemas/User.yaml' });
     
     expect(result).toBeDefined();
-    expect(result?.type).toBe('openapi-yaml');
+    expect(result?.type).toBe('openapi');
+    expect(result?.format).toBe('yaml');
     expect(result?.content.type).toBe('object');
   });
 
   it('should detect parameter files', () => {
-    const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-    expect(yamlParser).toBeDefined();
+    const parser = plugin.parsers?.['openapi-parser'];
+    expect(parser).toBeDefined();
 
     const parameterYaml = `name: id
 in: path
@@ -59,16 +61,17 @@ schema:
   type: integer`;
 
     // @ts-expect-error We are mocking things here
-    const result = yamlParser?.parse(parameterYaml, { filepath: 'components/parameters/UserId.yaml' });
+    const result = parser?.parse(parameterYaml, { filepath: 'components/parameters/UserId.yaml' });
     
     expect(result).toBeDefined();
-    expect(result?.type).toBe('openapi-yaml');
+    expect(result?.type).toBe('openapi');
+    expect(result?.format).toBe('yaml');
     expect(result?.content.name).toBe('id');
   });
 
   it('should detect response files', () => {
-    const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-    expect(yamlParser).toBeDefined();
+    const parser = plugin.parsers?.['openapi-parser'];
+    expect(parser).toBeDefined();
 
     const responseYaml = `description: User response
 content:
@@ -82,16 +85,17 @@ content:
           type: string`;
 
     // @ts-expect-error We are mocking things here
-    const result = yamlParser?.parse(responseYaml, { filepath: 'components/responses/UserResponse.yaml' });
+    const result = parser?.parse(responseYaml, { filepath: 'components/responses/UserResponse.yaml' });
     
     expect(result).toBeDefined();
-    expect(result?.type).toBe('openapi-yaml');
+    expect(result?.type).toBe('openapi');
+    expect(result?.format).toBe('yaml');
     expect(result?.content.description).toBe('User response');
   });
 
   it('should detect path files', () => {
-    const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-    expect(yamlParser).toBeDefined();
+    const parser = plugin.parsers?.['openapi-parser'];
+    expect(parser).toBeDefined();
 
     const pathYaml = `get:
   summary: Get users
@@ -107,17 +111,18 @@ post:
           type: object`;
 
     // @ts-expect-error We are mocking things here
-    const result = yamlParser?.parse(pathYaml, { filepath: 'paths/users.yaml' });
+    const result = parser?.parse(pathYaml, { filepath: 'paths/users.yaml' });
     
     expect(result).toBeDefined();
-    expect(result?.type).toBe('openapi-yaml');
+    expect(result?.type).toBe('openapi');
+    expect(result?.format).toBe('yaml');
     expect(result?.content.get).toBeDefined();
     expect(result?.content.post).toBeDefined();
   });
 
   it('should detect security scheme files', () => {
-    const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-    expect(yamlParser).toBeDefined();
+    const parser = plugin.parsers?.['openapi-parser'];
+    expect(parser).toBeDefined();
 
     const securityYaml = `type: http
 scheme: bearer
@@ -125,42 +130,44 @@ bearerFormat: JWT
 description: JWT authentication`;
 
     // @ts-expect-error We are mocking things here
-    const result = yamlParser?.parse(securityYaml, { filepath: 'components/securitySchemes/BearerAuth.yaml' });
+    const result = parser?.parse(securityYaml, { filepath: 'components/securitySchemes/BearerAuth.yaml' });
     
     expect(result).toBeDefined();
-    expect(result?.type).toBe('openapi-yaml');
+    expect(result?.type).toBe('openapi');
+    expect(result?.format).toBe('yaml');
     expect(result?.content.type).toBe('http');
   });
 
   it('should reject non-OpenAPI files', () => {
-    const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-    expect(yamlParser).toBeDefined();
+    const parser = plugin.parsers?.['openapi-parser'];
+    expect(parser).toBeDefined();
 
     const nonOpenAPIYaml = `name: John
 age: 30
 city: New York`;
 
     // @ts-expect-error We are mocking things here
-    expect(() => yamlParser?.parse(nonOpenAPIYaml, { filepath: 'config/data.yaml' })).toThrow('Not an OpenAPI file');
+    expect(() => parser?.parse(nonOpenAPIYaml, { filepath: 'config/data.yaml' })).toThrow('Not an OpenAPI file');
   });
 
   it('should accept files in OpenAPI directories even with simple content', () => {
-    const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-    expect(yamlParser).toBeDefined();
+    const parser = plugin.parsers?.['openapi-parser'];
+    expect(parser).toBeDefined();
 
     const simpleYaml = `name: John
 age: 30
 city: New York`;
 
     // @ts-expect-error We are mocking things here
-    const result = yamlParser?.parse(simpleYaml, { filepath: 'components/schemas/User.yaml' });
+    const result = parser?.parse(simpleYaml, { filepath: 'components/schemas/User.yaml' });
     expect(result).toBeDefined();
-    expect(result?.type).toBe('openapi-yaml');
+    expect(result?.type).toBe('openapi');
+    expect(result?.format).toBe('yaml');
   });
 
   it('should support component directory patterns', () => {
-    const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-    expect(yamlParser).toBeDefined();
+    const parser = plugin.parsers?.['openapi-parser'];
+    expect(parser).toBeDefined();
 
     const componentYaml = `type: object
 properties:
@@ -184,9 +191,10 @@ properties:
 
     paths.forEach(path => {
       // @ts-expect-error We are mocking things here
-      const result = yamlParser?.parse(componentYaml, { filepath: path });
+      const result = parser?.parse(componentYaml, { filepath: path });
       expect(result).toBeDefined();
-      expect(result?.type).toBe('openapi-yaml');
+      expect(result?.type).toBe('openapi');
+    expect(result?.format).toBe('yaml');
     });
   });
 });

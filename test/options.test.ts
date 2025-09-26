@@ -12,10 +12,10 @@ describe('Plugin Options', () => {
       paths: {}
     };
 
-    const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-    expect(jsonPrinter).toBeDefined();
+    const printer = plugin.printers?.['openapi-ast'];
+    expect(printer).toBeDefined();
 
-    const result = jsonPrinter?.print({ getValue: () => ({ type: 'openapi-json', content: testData, originalText: '' }) }, { tabWidth: 4 }, () => '');
+    const result = printer?.print({ getValue: () => ({ type: 'openapi', content: testData, originalText: '', format: 'json' }) }, { tabWidth: 4 }, () => '');
     expect(result).toBeDefined();
 
     if (!result) {
@@ -39,10 +39,10 @@ describe('Plugin Options', () => {
       paths: {}
     };
 
-    const yamlPrinter = plugin.printers?.['openapi-yaml-ast'];
-    expect(yamlPrinter).toBeDefined();
+    const printer = plugin.printers?.['openapi-ast'];
+    expect(printer).toBeDefined();
 
-    const result = yamlPrinter?.print({ getValue: () => ({ type: 'openapi-yaml', content: testData, originalText: '' }) }, { tabWidth: 4 }, () => '');
+    const result = printer?.print({ getValue: () => ({ type: 'openapi', content: testData, originalText: '', format: 'yaml' }) }, { tabWidth: 4 }, () => '');
     expect(result).toBeDefined();
 
     if (!result) {
@@ -64,10 +64,10 @@ describe('Plugin Options', () => {
       paths: {}
     };
 
-    const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-    expect(jsonPrinter).toBeDefined();
+    const printer = plugin.printers?.['openapi-ast'];
+    expect(printer).toBeDefined();
 
-    const result = jsonPrinter?.print({ getValue: () => ({ type: 'openapi-json', content: testData, originalText: '' }) }, {}, () => '');
+    const result = printer?.print({ getValue: () => ({ type: 'openapi', content: testData, originalText: '', format: 'json' }) }, {}, () => '');
     expect(result).toBeDefined();
 
     if (!result) {
@@ -91,10 +91,10 @@ describe('Plugin Options', () => {
       paths: {}
     };
 
-    const yamlPrinter = plugin.printers?.['openapi-yaml-ast'];
-    expect(yamlPrinter).toBeDefined();
+    const printer = plugin.printers?.['openapi-ast'];
+    expect(printer).toBeDefined();
 
-    const result = yamlPrinter?.print({ getValue: () => ({ type: 'openapi-yaml', content: testData, originalText: '' }) }, { printWidth: 20 }, () => '');
+    const result = printer?.print({ getValue: () => ({ type: 'openapi', content: testData, originalText: '', format: 'yaml' }) }, { printWidth: 20 }, () => '');
     expect(result).toBeDefined();
 
     // The YAML should be formatted with the custom line width

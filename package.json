@@ -9,13 +9,22 @@
   },
   "license": "MIT",
   "main": "dist/index.js",
-  "module": "dist/index.js",
-  "type": "module",
   "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
+    "dist/index.js",
+    "dist/index.js.map",
+    "dist/browser.js",
+    "dist/index.d.ts"
   ],
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./browser": "./dist/browser.js",
+    "./package.json": "./package.json"
+  },
+  "type": "module",
   "engines": {
     "node": ">=18.0.0"
   },
@@ -28,16 +37,17 @@
   },
   "homepage": "https://github.com/lukehagar/prettier-plugin-openapi#readme",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "pretest": "tsc",
+    "build": "rollup -c && tsc --emitDeclarationOnly",
+    "dev": "rollup -c --watch",
+    "pretest": "rollup -c",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "test:watch": "bun test --watch",
     "test:ci": "bun test --reporter=verbose",
     "lint": "biome lint src/ test/",
     "lint:fix": "biome lint --write src/ test/",
-    "type-check": "tsc --noEmit",
+    "check": "tsc --noEmit",
+    "check:watch": "tsc --noEmit --watch",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"*.{json,md,yml,yaml}\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"*.{json,md,yml,yaml}\"",
     "clean": "rm -rf dist coverage",
@@ -63,9 +73,14 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
+    "@rollup/plugin-alias": "^5.1.1",
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^16.0.1",
     "@types/bun": "latest",
     "@types/node": "^20.0.0",
     "prettier": "^3.0.0",
+    "rollup": "^4.52.2",
+    "rollup-plugin-typescript": "^1.0.1",
     "typescript": "^5.0.0"
   },
   "dependencies": {

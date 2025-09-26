@@ -4,10 +4,11 @@ import plugin from '../src/index';
 describe('Key Ordering Tests', () => {
   describe('Info section key ordering', () => {
     it('should sort info keys correctly', () => {
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
+        type: 'openapi',
         content: {
           openapi: '3.0.0',
           info: {
@@ -18,23 +19,27 @@ describe('Key Ordering Tests', () => {
             contact: { name: 'API Team', email: 'api@example.com' },
             license: { name: 'MIT', url: 'https://opensource.org/licenses/MIT' }
           }
-        }
+        },
+        originalText: '',
+        format: 'json'
       };
 // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
         throw new Error('Result is undefined');
       }
+
+      const resultString = result.toString();
       
       // Check that info keys appear in the correct order
-      const titleIndex = result.toString().indexOf('"title"');
-      const versionIndex = result.toString().indexOf('"version"');
-      const descriptionIndex = result.toString().indexOf('"description"');
-      const termsOfServiceIndex = result.toString().indexOf('"termsOfService"');
-      const contactIndex = result.toString().indexOf('"contact"');
-      const licenseIndex = result.toString().indexOf('"license"');
+      const titleIndex = resultString.indexOf('title');
+      const versionIndex = resultString.indexOf('version');
+      const descriptionIndex = resultString.indexOf('description');
+      const termsOfServiceIndex = resultString.indexOf('termsOfService');
+      const contactIndex = resultString.indexOf('contact');
+      const licenseIndex = resultString.indexOf('license');
 
       expect(titleIndex).toBeLessThan(versionIndex);
       expect(versionIndex).toBeLessThan(descriptionIndex);
@@ -46,10 +51,11 @@ describe('Key Ordering Tests', () => {
 
   describe('Operation key ordering', () => {
     it('should sort operation keys correctly', () => {
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
+        type: 'openapi',
         content: {
           openapi: '3.0.0',
           info: { title: 'Test API', version: '1.0.0' },
@@ -70,29 +76,33 @@ describe('Key Ordering Tests', () => {
               }
             }
           }
-        }
+        },
+        originalText: '',
+        format: 'json'
       };
 
       // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
         throw new Error('Result is undefined');
       }
+
+      const resultString = result.toString();
       
       // Check that operation keys appear in the correct order
-      const summaryIndex = result.toString().indexOf('"summary"');
-      const operationIdIndex = result.toString().indexOf('"operationId"');
-      const descriptionIndex = result.toString().indexOf('"description"');
-      const tagsIndex = result.toString().indexOf('"tags"');
-      const deprecatedIndex = result.toString().indexOf('"deprecated"');
-      const securityIndex = result.toString().indexOf('"security"');
-      const serversIndex = result.toString().indexOf('"servers"');
-      const parametersIndex = result.toString().indexOf('"parameters"');
-      const requestBodyIndex = result.toString().indexOf('"requestBody"');
-      const responsesIndex = result.toString().indexOf('"responses"');
-      const callbacksIndex = result.toString().indexOf('"callbacks"');
+      const summaryIndex = resultString.indexOf('summary');
+      const operationIdIndex = resultString.indexOf('operationId');
+      const descriptionIndex = resultString.indexOf('description');
+      const tagsIndex = resultString.indexOf('tags');
+      const deprecatedIndex = resultString.indexOf('deprecated');
+      const securityIndex = resultString.indexOf('security');
+      const serversIndex = resultString.indexOf('servers');
+      const parametersIndex = resultString.indexOf('parameters');
+      const requestBodyIndex = resultString.indexOf('requestBody');
+      const responsesIndex = resultString.indexOf('responses');
+      const callbacksIndex = resultString.indexOf('callbacks');
 
       expect(summaryIndex).toBeLessThan(operationIdIndex);
       expect(operationIdIndex).toBeLessThan(descriptionIndex);
@@ -109,8 +119,8 @@ describe('Key Ordering Tests', () => {
 
   describe('Schema key ordering', () => {
     it('should sort schema keys correctly', () => {
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
         content: {
@@ -159,53 +169,48 @@ describe('Key Ordering Tests', () => {
       };
 
       // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
         throw new Error('Result is undefined');
       }
 
-      // Check that schema keys appear in the correct order
-      // Find the schema section specifically
-      const schemaStart = result.toString().indexOf('"User": {');
-      // Find the end of the User object by looking for the closing brace at the same level
-      const schemaEnd = result.toString().indexOf('}', result.toString().lastIndexOf('"xml"'));
-      const schemaSection = result.toString().substring(schemaStart, schemaEnd + 1);
+      const resultString = result.toString();
       
-      const typeIndex = schemaSection.indexOf('"type"');
-      const formatIndex = schemaSection.indexOf('"format"');
-      const titleIndex = schemaSection.indexOf('"title"');
-      const descriptionIndex = schemaSection.indexOf('"description"');
-      const defaultIndex = schemaSection.indexOf('"default"');
-      const exampleIndex = schemaSection.indexOf('"example"');
-      const examplesIndex = schemaSection.indexOf('"examples"');
-      const enumIndex = schemaSection.indexOf('"enum"');
-      const constIndex = schemaSection.indexOf('"const"');
-      const multipleOfIndex = schemaSection.indexOf('"multipleOf"');
-      const maximumIndex = schemaSection.indexOf('"maximum"');
-      const exclusiveMaximumIndex = schemaSection.indexOf('"exclusiveMaximum"');
-      const minimumIndex = schemaSection.indexOf('"minimum"');
-      const exclusiveMinimumIndex = schemaSection.indexOf('"exclusiveMinimum"');
-      const maxLengthIndex = schemaSection.indexOf('"maxLength"');
-      const minLengthIndex = schemaSection.indexOf('"minLength"');
-      const patternIndex = schemaSection.indexOf('"pattern"');
-      const maxItemsIndex = schemaSection.indexOf('"maxItems"');
-      const minItemsIndex = schemaSection.indexOf('"minItems"');
-      const uniqueItemsIndex = schemaSection.indexOf('"uniqueItems"');
-      const maxPropertiesIndex = schemaSection.indexOf('"maxProperties"');
-      const minPropertiesIndex = schemaSection.indexOf('"minProperties"');
-      const requiredIndex = schemaSection.indexOf('"required"');
-      const propertiesIndex = schemaSection.indexOf('"properties"');
-      const itemsIndex = schemaSection.indexOf('"items"');
-      const allOfIndex = schemaSection.indexOf('"allOf"');
-      const oneOfIndex = schemaSection.indexOf('"oneOf"');
-      const anyOfIndex = schemaSection.indexOf('"anyOf"');
-      const notIndex = schemaSection.indexOf('"not"');
-      const discriminatorIndex = schemaSection.indexOf('"discriminator"');
-      const xmlIndex = schemaSection.indexOf('"xml"');
-      const externalDocsIndex = schemaSection.indexOf('"externalDocs"');
-      const deprecatedIndex = schemaSection.indexOf('"deprecated"');
+      const typeIndex = resultString.indexOf('type:');
+      const formatIndex = resultString.indexOf('format:');
+      const titleIndex = resultString.indexOf('title:');
+      const descriptionIndex = resultString.indexOf('description:');
+      const defaultIndex = resultString.indexOf('default:');
+      const exampleIndex = resultString.indexOf('example:');
+      const examplesIndex = resultString.indexOf('examples:');
+      const enumIndex = resultString.indexOf('enum:');
+      const constIndex = resultString.indexOf('const:');
+      const multipleOfIndex = resultString.indexOf('multipleOf:');
+      const maximumIndex = resultString.indexOf('maximum:');
+      const exclusiveMaximumIndex = resultString.indexOf('exclusiveMaximum:');
+      const minimumIndex = resultString.indexOf('minimum:');
+      const exclusiveMinimumIndex = resultString.indexOf('exclusiveMinimum:');
+      const maxLengthIndex = resultString.indexOf('maxLength:');
+      const minLengthIndex = resultString.indexOf('minLength:');
+      const patternIndex = resultString.indexOf('pattern:');
+      const maxItemsIndex = resultString.indexOf('maxItems:');
+      const minItemsIndex = resultString.indexOf('minItems:');
+      const uniqueItemsIndex = resultString.indexOf('uniqueItems:');
+      const maxPropertiesIndex = resultString.indexOf('maxProperties:');
+      const minPropertiesIndex = resultString.indexOf('minProperties:');
+      const requiredIndex = resultString.indexOf('required:');
+      const propertiesIndex = resultString.indexOf('properties:');
+      const itemsIndex = resultString.indexOf('items:');
+      const allOfIndex = resultString.indexOf('allOf:');
+      const oneOfIndex = resultString.indexOf('oneOf:');
+      const anyOfIndex = resultString.indexOf('anyOf:');
+      const notIndex = resultString.indexOf('not:');
+      const discriminatorIndex = resultString.indexOf('discriminator:');
+      const xmlIndex = resultString.indexOf('xml:');
+      const externalDocsIndex = resultString.indexOf('externalDocs:');
+      const deprecatedIndex = resultString.indexOf('deprecated:');
 
       // Test the core ordering - just the most important keys
       expect(titleIndex).toBeLessThan(descriptionIndex);
@@ -242,8 +247,8 @@ describe('Key Ordering Tests', () => {
 
   describe('Response key ordering', () => {
     it('should sort response keys correctly', () => {
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
         content: {
@@ -266,18 +271,20 @@ describe('Key Ordering Tests', () => {
         }
       };
       // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
         throw new Error('Result is undefined');
       }
 
+      const resultString = result.toString();
+
       // Check that response keys appear in the correct order
-      const descriptionIndex = result.toString().indexOf('"description"');
-      const headersIndex = result.toString().indexOf('"headers"');
-      const contentIndex = result.toString().indexOf('"content"');
-      const linksIndex = result.toString().indexOf('"links"');
+      const descriptionIndex = resultString.indexOf('description');
+      const headersIndex = resultString.indexOf('headers');
+      const contentIndex = resultString.indexOf('content');
+      const linksIndex = resultString.indexOf('links');
 
       expect(descriptionIndex).toBeLessThan(headersIndex);
       expect(headersIndex).toBeLessThan(contentIndex);
@@ -287,8 +294,8 @@ describe('Key Ordering Tests', () => {
 
   describe('Parameter key ordering', () => {
     it('should sort parameter keys correctly', () => {
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
         content: {
@@ -320,32 +327,27 @@ describe('Key Ordering Tests', () => {
         }
       };
       // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
         throw new Error('Result is undefined');
       }
-            
-      // Check that parameter keys appear in the correct order
-      // Find the parameter section specifically (first parameter in the array)
-      const paramStart = result.toString().indexOf('{', result.toString().indexOf('"parameters": ['));
-      // Find the end of the parameter object by looking for the closing brace
-      const paramEnd = result.toString().indexOf('}', result.toString().lastIndexOf('"example"'));
-      const paramSection = result.toString().substring(paramStart, paramEnd + 1);
+
+      const resultString = result.toString();
       
-      const nameIndex = paramSection.indexOf('"name"');
-      const inIndex = paramSection.indexOf('"in"');
-      const descriptionIndex = paramSection.indexOf('"description"');
-      const requiredIndex = paramSection.indexOf('"required"');
-      const deprecatedIndex = paramSection.indexOf('"deprecated"');
-      const allowEmptyValueIndex = paramSection.indexOf('"allowEmptyValue"');
-      const styleIndex = paramSection.indexOf('"style"');
-      const explodeIndex = paramSection.indexOf('"explode"');
-      const allowReservedIndex = paramSection.indexOf('"allowReserved"');
-      const schemaIndex = paramSection.indexOf('"schema"');
-      const exampleIndex = paramSection.indexOf('"example"');
-      const examplesIndex = paramSection.indexOf('"examples"');
+      const nameIndex = resultString.indexOf('name:');
+      const inIndex = resultString.indexOf('in:');
+      const descriptionIndex = resultString.indexOf('description:');
+      const requiredIndex = resultString.indexOf('required:');
+      const deprecatedIndex = resultString.indexOf('deprecated:');
+      const allowEmptyValueIndex = resultString.indexOf('allowEmptyValue:');
+      const styleIndex = resultString.indexOf('style:');
+      const explodeIndex = resultString.indexOf('explode:');
+      const allowReservedIndex = resultString.indexOf('allowReserved:');
+      const schemaIndex = resultString.indexOf('schema:');
+      const exampleIndex = resultString.indexOf('example:');
+      const examplesIndex = resultString.indexOf('examples:');
 
       // Test the core parameter ordering
       expect(nameIndex).toBeLessThan(descriptionIndex);
@@ -364,8 +366,8 @@ describe('Key Ordering Tests', () => {
 
   describe('Security scheme key ordering', () => {
     it('should sort security scheme keys correctly', () => {
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
         content: {
@@ -393,22 +395,24 @@ describe('Key Ordering Tests', () => {
         }
       };
       // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
         throw new Error('Result is undefined');
       }
 
+      const resultString = result.toString();
+
       // Check that security scheme keys appear in the correct order
-      const typeIndex = result.toString().indexOf('"type"');
-      const descriptionIndex = result.toString().indexOf('"description"');
-      const nameIndex = result.toString().indexOf('"name"');
-      const inIndex = result.toString().indexOf('"in"');
-      const schemeIndex = result.toString().indexOf('"scheme"');
-      const bearerFormatIndex = result.toString().indexOf('"bearerFormat"');
-      const flowsIndex = result.toString().indexOf('"flows"');
-      const openIdConnectUrlIndex = result.toString().indexOf('"openIdConnectUrl"');
+      const typeIndex = resultString.indexOf('type:');
+      const descriptionIndex = resultString.indexOf('description:');
+      const nameIndex = resultString.indexOf('name:');
+      const inIndex = resultString.indexOf('in:');
+      const schemeIndex = resultString.indexOf('scheme:');
+      const bearerFormatIndex = resultString.indexOf('bearerFormat:');
+      const flowsIndex = resultString.indexOf('flows:');
+      const openIdConnectUrlIndex = resultString.indexOf('openIdConnectUrl:');
 
       expect(nameIndex).toBeLessThan(descriptionIndex);
       expect(descriptionIndex).toBeLessThan(typeIndex);
@@ -422,8 +426,8 @@ describe('Key Ordering Tests', () => {
 
   describe('Server key ordering', () => {
     it('should sort server keys correctly', () => {
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
         content: {
@@ -439,24 +443,19 @@ describe('Key Ordering Tests', () => {
         }
       };
 // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
         throw new Error('Result is undefined');
       }
-            
-      // Check that server keys appear in the correct order
-      // Find the server section specifically (first server in the array)
-      const serverStart = result.toString().indexOf('{', result.toString().indexOf('"servers": ['));
-      // Find the end of the server object
-      const serverEnd = result.toString().indexOf('}', result.toString().lastIndexOf('"variables"'));
-      const serverSection = result.toString().substring(serverStart, serverEnd + 1);
+
+      const resultString = result.toString();
       
-      const nameIndex = serverSection.indexOf('"name"');
-      const descriptionIndex = serverSection.indexOf('"description"');
-      const urlIndex = serverSection.indexOf('"url"');
-      const variablesIndex = serverSection.indexOf('"variables"');
+      const nameIndex = resultString.indexOf('name');
+      const descriptionIndex = resultString.indexOf('description');
+      const urlIndex = resultString.indexOf('url');
+      const variablesIndex = resultString.indexOf('variables');
 
       expect(nameIndex).toBeLessThan(descriptionIndex);
       expect(descriptionIndex).toBeLessThan(urlIndex);
@@ -466,8 +465,8 @@ describe('Key Ordering Tests', () => {
 
   describe('Tag key ordering', () => {
     it('should sort tag keys correctly', () => {
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
         content: {
@@ -483,23 +482,18 @@ describe('Key Ordering Tests', () => {
         }
       };
 // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
         throw new Error('Result is undefined');
       }
-            
-      // Check that tag keys appear in the correct order
-      // Find the tag section specifically (first tag in the array)
-      const tagStart = result.toString().indexOf('{', result.toString().indexOf('"tags": ['));
-      // Find the end of the tag object
-      const tagEnd = result.toString().indexOf('}', result.toString().lastIndexOf('"externalDocs"'));
-      const tagSection = result.toString().substring(tagStart, tagEnd + 1);
+
+      const resultString = result.toString();
       
-      const nameIndex = tagSection.indexOf('"name"');
-      const descriptionIndex = tagSection.indexOf('"description"');
-      const externalDocsIndex = tagSection.indexOf('"externalDocs"');
+      const nameIndex = resultString.indexOf('name');
+      const descriptionIndex = resultString.indexOf('description');
+      const externalDocsIndex = resultString.indexOf('externalDocs');
 
       expect(nameIndex).toBeLessThan(descriptionIndex);
       expect(descriptionIndex).toBeLessThan(externalDocsIndex);
@@ -508,8 +502,8 @@ describe('Key Ordering Tests', () => {
 
   describe('External docs key ordering', () => {
     it('should sort external docs keys correctly', () => {
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
         content: {
@@ -522,16 +516,18 @@ describe('Key Ordering Tests', () => {
         }
       };
 // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
         throw new Error('Result is undefined');
       }
+
+      const resultString = result.toString();
       
       // Check that external docs keys appear in the correct order
-      const descriptionIndex = result.toString().indexOf('"description"');
-      const urlIndex = result.toString().indexOf('"url"');
+      const descriptionIndex = resultString.indexOf('description');
+      const urlIndex = resultString.indexOf('url');
 
       expect(descriptionIndex).toBeLessThan(urlIndex);
     });
@@ -539,8 +535,8 @@ describe('Key Ordering Tests', () => {
 
   describe('Path sorting', () => {
     it('should sort paths by specificity', () => {
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
         content: {
@@ -555,18 +551,20 @@ describe('Key Ordering Tests', () => {
         }
       };
 // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
         throw new Error('Result is undefined');
       }
+
+      const resultString = result.toString();
             
       // Check that paths are sorted by specificity (fewer parameters first)
-      const usersIndex = result.toString().indexOf('"/users"');
-      const usersIdIndex = result.toString().indexOf('"/users/{id}"');
-      const usersIdPostsIndex = result.toString().indexOf('"/users/{id}/posts"');
-      const usersIdPostsPostIdIndex = result.toString().indexOf('"/users/{id}/posts/{postId}"');
+      const usersIndex = resultString.indexOf('/users');
+      const usersIdIndex = resultString.indexOf('/users/{id}');
+      const usersIdPostsIndex = resultString.indexOf('/users/{id}/posts');
+      const usersIdPostsPostIdIndex = resultString.indexOf('/users/{id}/posts/{postId}');
 
       expect(usersIndex).toBeLessThan(usersIdIndex);
       expect(usersIdIndex).toBeLessThan(usersIdPostsIndex);
@@ -576,8 +574,8 @@ describe('Key Ordering Tests', () => {
 
   describe('Response code sorting', () => {
     it('should sort response codes numerically', () => {
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
         content: {
@@ -599,19 +597,21 @@ describe('Key Ordering Tests', () => {
         }
       };
 // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
         throw new Error('Result is undefined');
       }
+
+      const resultString = result.toString();
             
       // Check that response codes are sorted numerically
-      const code200Index = result.toString().indexOf('"200"');
-      const code400Index = result.toString().indexOf('"400"');
-      const code404Index = result.toString().indexOf('"404"');
-      const code500Index = result.toString().indexOf('"500"');
-      const defaultIndex = result.toString().indexOf('"default"');
+      const code200Index = resultString.indexOf('200');
+      const code400Index = resultString.indexOf('400');
+      const code404Index = resultString.indexOf('404');
+      const code500Index = resultString.indexOf('500');
+      const defaultIndex = resultString.indexOf('default');
 
       expect(code200Index).toBeLessThan(code400Index);
       expect(code400Index).toBeLessThan(code404Index);

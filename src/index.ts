@@ -1,3 +1,4 @@
+import { SupportLanguage, Parser, Printer } from 'prettier';
 import type { Plugin } from 'prettier';
 import * as yaml from 'js-yaml';
 import { getVendorExtensions } from './extensions/vendor-loader.js';
@@ -32,9 +33,10 @@ import {
 
 // Type definitions for better type safety
 interface OpenAPINode {
-    type: 'openapi-json' | 'openapi-yaml';
+    type: 'openapi';
     content: any;
     originalText: string;
+    format: 'json' | 'yaml';
 }
 
 interface PrettierPath {
@@ -48,6 +50,66 @@ interface OpenAPIPluginOptions {
 
 // Load vendor extensions
 const vendorExtensions = getVendorExtensions();
+
+// ============================================================================
+// UNIFIED PARSER FUNCTIONS
+// ============================================================================
+
+/**
+ * Unified parser that can handle both JSON and YAML OpenAPI files
+ */
+function parseOpenAPIFile(text: string, options?: any): OpenAPINode {
+    // Try to detect the format based on file extension or content
+    const filePath = options?.filepath || '';
+    const isYamlFile = filePath.endsWith('.yaml') || filePath.endsWith('.yml');
+    const isJsonFile = filePath.endsWith('.json');
+    
+    // If we can't determine from extension, try to detect from content
+    let format: 'json' | 'yaml' = 'json'; // default to JSON
+    if (isYamlFile) {
+        format = 'yaml';
+    } else if (isJsonFile) {
+        format = 'json';
+    } else {
+        // Try to detect format from content
+        const trimmedText = text.trim();
+        if (trimmedText.startsWith('{') || trimmedText.startsWith('[')) {
+            format = 'json';
+        } else {
+            format = 'yaml';
+        }
+    }
+    
+    try {
+        let parsed: any;
+        
+        if (format === 'json') {
+            parsed = JSON.parse(text);
+        } else {
+            parsed = yaml.load(text, {
+                schema: yaml.DEFAULT_SCHEMA,
+                onWarning: (warning) => {
+                    // Handle YAML warnings if needed
+                    console.warn('YAML parsing warning:', warning);
+                }
+            });
+        }
+        
+        // Check if this is an OpenAPI file
+        if (!isOpenAPIFile(parsed, filePath)) {
+            throw new Error('Not an OpenAPI file');
+        }
+        
+        return {
+            type: 'openapi',
+            content: parsed,
+            originalText: text,
+            format: format,
+        };
+    } catch (error) {
+        throw new Error(`Failed to parse OpenAPI ${format.toUpperCase()}: ${error}`);
+    }
+}
 
 // ============================================================================
 // FILE DETECTION FUNCTIONS
@@ -170,116 +232,62 @@ function isPathObject(obj: any): boolean {
 const plugin: Plugin = {
     languages: [
         {
-            name: 'openapi-json',
+            name: 'openapi',
             extensions: [
-                '.openapi.json', '.swagger.json',
-                // Support for component files
-                '.json'
+                // Accepting all JSON and YAML files so that component files used by $ref work
+                '.json', '.yaml', '.yml'
             ],
-            parsers: ['openapi-json-parser'],
-        },
-        {
-            name: 'openapi-yaml',
-            extensions: [
-                '.openapi.yaml', '.openapi.yml', 
-                '.swagger.yaml', '.swagger.yml',
-                // Support for component files
-                '.yaml', '.yml'
-            ],
-            parsers: ['openapi-yaml-parser'],
+            parsers: ['openapi-parser'],
         },
     ],
     parsers: {
-        'openapi-json-parser': {
+        'openapi-parser': {
             parse: (text: string, options?: any): OpenAPINode => {
-                try {
-                    const parsed = JSON.parse(text);
-                    
-                    // Check if this is an OpenAPI file
-                    if (!isOpenAPIFile(parsed, options?.filepath)) {
-                        throw new Error('Not an OpenAPI file');
-                    }
-                    
-                    return {
-                        type: 'openapi-json',
-                        content: parsed,
-                        originalText: text,
-                    };
-                } catch (error) {
-                    throw new Error(`Failed to parse OpenAPI JSON: ${error}`);
-                }
+                return parseOpenAPIFile(text, options);
             },
-            astFormat: 'openapi-json-ast',
-            locStart: (node: OpenAPINode) => 0,
-            locEnd: (node: OpenAPINode) => node.originalText?.length || 0,
-        },
-        'openapi-yaml-parser': {
-            parse: (text: string, options?: any): OpenAPINode => {
-                try {
-                    const parsed = yaml.load(text, {
-                        schema: yaml.DEFAULT_SCHEMA,
-                        onWarning: (warning) => {
-                            // Handle YAML warnings if needed
-                            console.warn('YAML parsing warning:', warning);
-                        }
-                    });
-                    
-                    // Check if this is an OpenAPI file
-                    if (!isOpenAPIFile(parsed, options?.filepath)) {
-                        throw new Error('Not an OpenAPI file');
-                    }
-                    
-                    return {
-                        type: 'openapi-yaml',
-                        content: parsed,
-                        originalText: text,
-                    };
-                } catch (error) {
-                    throw new Error(`Failed to parse OpenAPI YAML: ${error}`);
-                }
-            },
-            astFormat: 'openapi-yaml-ast',
+            astFormat: 'openapi-ast',
             locStart: (node: OpenAPINode) => 0,
             locEnd: (node: OpenAPINode) => node.originalText?.length || 0,
         },
     },
     printers: {
-        'openapi-json-ast': {
+        'openapi-ast': {
             print: (path: PrettierPath, options?: any, print?: any, ...rest: any[]): string => {
                 const node = path.getValue();
-                return formatOpenAPIJSON(node.content, options);
-            },
-        },
-        'openapi-yaml-ast': {
-            print: (path: PrettierPath, options?: any, print?: any, ...rest: any[]): string => {
-                const node = path.getValue();
-                return formatOpenAPIYAML(node.content, options);
+                return formatOpenAPI(node.content, node.format, options);
             },
         },
     },
 };
 
-function formatOpenAPIJSON(content: any, options?: OpenAPIPluginOptions): string {
+/**
+ * Unified formatter that outputs in the detected format
+ */
+function formatOpenAPI(content: any, format: 'json' | 'yaml', options?: OpenAPIPluginOptions): string {
     // Sort keys for better organization
     const sortedContent = sortOpenAPIKeys(content);
 
-    // Format with proper indentation
-    return JSON.stringify(sortedContent, null, options?.tabWidth || 2);
+    if (format === 'json') {
+        // Format with proper indentation
+        return JSON.stringify(sortedContent, null, options?.tabWidth || 2);
+    } else {
+        // Format YAML with proper indentation and line breaks
+        return yaml.dump(sortedContent, {
+            indent: options?.tabWidth || 2,
+            lineWidth: options?.printWidth || 80,
+            noRefs: true,
+            quotingType: '"',
+            forceQuotes: false,
+        });
+    }
+}
+
+function formatOpenAPIJSON(content: any, options?: OpenAPIPluginOptions): string {
+    return formatOpenAPI(content, 'json', options);
 }
 
 function formatOpenAPIYAML(content: any, options?: OpenAPIPluginOptions): string {
-    // Sort keys for better organization
-    const sortedContent = sortOpenAPIKeys(content);
-
-    // Format YAML with proper indentation and line breaks
-    return yaml.dump(sortedContent, {
-        indent: options?.tabWidth || 2,
-        lineWidth: options?.printWidth || 80,
-        noRefs: true,
-        sortKeys: true,
-        quotingType: '"',
-        forceQuotes: false,
-    });
+    return formatOpenAPI(content, 'yaml', options);
 }
 
 function sortOpenAPIKeys(obj: any): any {

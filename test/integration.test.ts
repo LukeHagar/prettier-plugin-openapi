@@ -213,15 +213,18 @@ describe('Integration Tests', () => {
         ]
       };
 
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
-        content: openApiContent
+        type: 'openapi',
+        content: openApiContent,
+        originalText: '',
+        format: 'json'
       };
 
       // @ts-expect-error We are mocking things here
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
       
       if (result && typeof result === 'string') {
@@ -362,15 +365,18 @@ describe('Integration Tests', () => {
         ]
       };
 
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
-        content: swaggerContent
+        type: 'openapi',
+        content: swaggerContent,
+        originalText: '',
+        format: 'json'
       };
 
       // @ts-expect-error We are mocking things here
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
       
       if (result && typeof result === 'string') {
@@ -413,15 +419,18 @@ describe('Integration Tests', () => {
         }
       };
 
-      const yamlPrinter = plugin.printers?.['openapi-yaml-ast'];
-      expect(yamlPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
-        content: yamlContent
+        type: 'openapi',
+        content: yamlContent,
+        originalText: '',
+        format: 'yaml'
       };
 
       // @ts-expect-error We are mocking things here
-      const result = yamlPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
       
       if (result) {
@@ -442,33 +451,33 @@ describe('Integration Tests', () => {
 
   describe('Error handling', () => {
     it('should handle malformed JSON gracefully', () => {
-      const jsonParser = plugin.parsers?.['openapi-json-parser'];
-      expect(jsonParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       const malformedJson = '{"openapi": "3.0.0", "info": {';
 
       // @ts-expect-error We are mocking things here
-      expect(() => jsonParser?.parse(malformedJson, {})).toThrow();
+      expect(() => parser?.parse(malformedJson, { filepath: 'test.json' })).toThrow();
     });
 
     it('should handle malformed YAML gracefully', () => {
-      const yamlParser = plugin.parsers?.['openapi-yaml-parser'];
-      expect(yamlParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       const malformedYaml = 'openapi: 3.0.0\ninfo:\n  title: Test\n  version: 1.0.0\n  invalid: [';
 
       // @ts-expect-error We are mocking things here
-      expect(() => yamlParser?.parse(malformedYaml, {})).toThrow();
+      expect(() => parser?.parse(malformedYaml, { filepath: 'test.yaml' })).toThrow();
     });
 
     it('should reject non-OpenAPI content', () => {
-      const jsonParser = plugin.parsers?.['openapi-json-parser'];
-      expect(jsonParser).toBeDefined();
+      const parser = plugin.parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
 
       const nonOpenAPI = '{"name": "John", "age": 30}';
 
       // @ts-expect-error We are mocking things here
-      expect(() => jsonParser?.parse(nonOpenAPI, {})).toThrow('Not an OpenAPI file');
+      expect(() => parser?.parse(nonOpenAPI, { filepath: 'test.json' })).toThrow('Not an OpenAPI file');
     });
   });
 
@@ -497,17 +506,20 @@ describe('Integration Tests', () => {
         };
       }
 
-      const jsonPrinter = plugin.printers?.['openapi-json-ast'];
-      expect(jsonPrinter).toBeDefined();
+      const printer = plugin.printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
 
       const testData = {
-        content: largeOpenAPI
+        type: 'openapi',
+        content: largeOpenAPI,
+        originalText: '',
+        format: 'json'
       };
 
       const startTime = Date.now();
       
       // @ts-expect-error We are mocking things here
-      const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       
       const endTime = Date.now();
       const duration = endTime - startTime;

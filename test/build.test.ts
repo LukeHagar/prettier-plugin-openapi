@@ -44,17 +44,17 @@ describe('Build Tests', () => {
       const indexPath = path.join(process.cwd(), 'dist', 'index.js');
       const content = fs.readFileSync(indexPath, 'utf-8');
       
-      // Should have default export
-      expect(content).toContain('export default');
+      // Should have module.exports (CommonJS format)
+      expect(content).toContain('module.exports');
     });
 
     it('should have proper module structure', () => {
       const indexPath = path.join(process.cwd(), 'dist', 'index.js');
       const content = fs.readFileSync(indexPath, 'utf-8');
       
-      // Should be ES module
-      expect(content).toContain('import');
-      expect(content).toContain('export');
+      // Should be CommonJS module
+      expect(content).toContain('require');
+      expect(content).toContain('module.exports');
     });
   });
 
@@ -64,19 +64,22 @@ describe('Build Tests', () => {
       expect(packageJson.main).toBe('dist/index.js');
     });
 
-    it('should have correct module field', () => {
+    it('should have correct types field', () => {
       const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
-      expect(packageJson.module).toBe('dist/index.js');
+      expect(packageJson.types).toBe('./dist/index.d.ts');
     });
 
-    it('should have correct type field', () => {
+    it('should have correct exports field', () => {
       const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
-      expect(packageJson.type).toBe('module');
+      expect(packageJson.exports).toBeDefined();
+      expect(packageJson.exports['.']).toBeDefined();
+      expect(packageJson.exports['.'].default).toBe('./dist/index.js');
     });
 
-    it('should include dist in files array', () => {
+    it('should include required files in files array', () => {
       const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
-      expect(packageJson.files).toContain('dist');
+      expect(packageJson.files).toContain('dist/index.js');
+      expect(packageJson.files).toContain('dist/index.d.ts');
     });
 
     it('should have required metadata', () => {
