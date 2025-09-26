@@ -220,7 +220,7 @@ describe('Integration Tests', () => {
         content: openApiContent
       };
 
-      // @ts-ignore We are mocking things here
+      // @ts-expect-error We are mocking things here
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
       
@@ -369,7 +369,7 @@ describe('Integration Tests', () => {
         content: swaggerContent
       };
 
-      // @ts-ignore We are mocking things here
+      // @ts-expect-error We are mocking things here
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
       
@@ -420,7 +420,7 @@ describe('Integration Tests', () => {
         content: yamlContent
       };
 
-      // @ts-ignore We are mocking things here
+      // @ts-expect-error We are mocking things here
       const result = yamlPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
       
@@ -447,7 +447,7 @@ describe('Integration Tests', () => {
 
       const malformedJson = '{"openapi": "3.0.0", "info": {';
 
-      // @ts-ignore We are mocking things here
+      // @ts-expect-error We are mocking things here
       expect(() => jsonParser?.parse(malformedJson, {})).toThrow();
     });
 
@@ -457,7 +457,7 @@ describe('Integration Tests', () => {
 
       const malformedYaml = 'openapi: 3.0.0\ninfo:\n  title: Test\n  version: 1.0.0\n  invalid: [';
 
-      // @ts-ignore We are mocking things here
+      // @ts-expect-error We are mocking things here
       expect(() => yamlParser?.parse(malformedYaml, {})).toThrow();
     });
 
@@ -467,7 +467,7 @@ describe('Integration Tests', () => {
 
       const nonOpenAPI = '{"name": "John", "age": 30}';
 
-      // @ts-ignore We are mocking things here
+      // @ts-expect-error We are mocking things here
       expect(() => jsonParser?.parse(nonOpenAPI, {})).toThrow('Not an OpenAPI file');
     });
   });
@@ -506,7 +506,7 @@ describe('Integration Tests', () => {
 
       const startTime = Date.now();
       
-      // @ts-ignore We are mocking things here
+      // @ts-expect-error We are mocking things here
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       
       const endTime = Date.now();

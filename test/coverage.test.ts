@@ -9,13 +9,13 @@ describe('Coverage Tests', () => {
 
       // Test with null content
       expect(() => {
-        // @ts-ignore We are testing edge cases
+        // @ts-expect-error We are testing edge cases
         jsonParser?.parse('null', {});
       }).toThrow();
 
       // Test with undefined content
       expect(() => {
-        // @ts-ignore We are testing edge cases
+        // @ts-expect-error We are testing edge cases
         jsonParser?.parse('undefined', {});
       }).toThrow();
     });
@@ -26,13 +26,13 @@ describe('Coverage Tests', () => {
 
       // Test with string content
       expect(() => {
-        // @ts-ignore We are testing edge cases
+        // @ts-expect-error We are testing edge cases
         jsonParser?.parse('"string"', {});
       }).toThrow();
 
       // Test with number content
       expect(() => {
-        // @ts-ignore We are testing edge cases
+        // @ts-expect-error We are testing edge cases
         jsonParser?.parse('123', {});
       }).toThrow();
     });
@@ -43,7 +43,7 @@ describe('Coverage Tests', () => {
 
       // Test with array content
       expect(() => {
-        // @ts-ignore We are testing edge cases
+        // @ts-expect-error We are testing edge cases
         jsonParser?.parse('[]', {});
       }).toThrow();
     });
@@ -54,7 +54,7 @@ describe('Coverage Tests', () => {
 
       // Test with malformed JSON
       expect(() => {
-        // @ts-ignore We are testing edge cases
+        // @ts-expect-error We are testing edge cases
         jsonParser?.parse('{invalid json}', {});
       }).toThrow('Failed to parse OpenAPI JSON');
     });
@@ -65,7 +65,7 @@ describe('Coverage Tests', () => {
 
       // Test with malformed YAML
       expect(() => {
-        // @ts-ignore We are testing edge cases
+        // @ts-expect-error We are testing edge cases
         yamlParser?.parse('invalid: yaml: content:', {});
       }).toThrow('Failed to parse OpenAPI YAML');
     });
@@ -97,7 +97,7 @@ properties:
       ];
 
       paths.forEach(path => {
-        // @ts-ignore We are testing edge cases
+        // @ts-expect-error We are testing edge cases
         const result = yamlParser?.parse(testYaml, { filepath: path });
         expect(result).toBeDefined();
         expect(result?.type).toBe('openapi-yaml');
@@ -113,7 +113,7 @@ info:
   title: Test API
   version: 1.0.0`;
 
-      // @ts-ignore We are testing edge cases
+      // @ts-expect-error We are testing edge cases
       const result = yamlParser?.parse(testYaml, {});
       expect(result).toBeDefined();
       expect(result?.type).toBe('openapi-yaml');
@@ -131,7 +131,7 @@ info:
     '200':
       description: Success`;
 
-      // @ts-ignore We are testing edge cases
+      // @ts-expect-error We are testing edge cases
       const result = yamlParser?.parse(operationYaml, { filepath: 'paths/users.yaml' });
       expect(result).toBeDefined();
       expect(result?.type).toBe('openapi-yaml');
@@ -147,7 +147,7 @@ required: true
 schema:
   type: integer`;
 
-      // @ts-ignore We are testing edge cases
+      // @ts-expect-error We are testing edge cases
       const result = yamlParser?.parse(parameterYaml, { filepath: 'components/parameters/UserId.yaml' });
       expect(result).toBeDefined();
       expect(result?.type).toBe('openapi-yaml');
@@ -166,7 +166,7 @@ properties:
 required:
   - id`;
 
-      // @ts-ignore We are testing edge cases
+      // @ts-expect-error We are testing edge cases
       const result = yamlParser?.parse(schemaYaml, { filepath: 'components/schemas/User.yaml' });
       expect(result).toBeDefined();
       expect(result?.type).toBe('openapi-yaml');
@@ -182,7 +182,7 @@ content:
     schema:
       type: object`;
 
-      // @ts-ignore We are testing edge cases
+      // @ts-expect-error We are testing edge cases
       const result = yamlParser?.parse(responseYaml, { filepath: 'components/responses/UserResponse.yaml' });
       expect(result).toBeDefined();
       expect(result?.type).toBe('openapi-yaml');
@@ -196,7 +196,7 @@ content:
 scheme: bearer
 bearerFormat: JWT`;
 
-      // @ts-ignore We are testing edge cases
+      // @ts-expect-error We are testing edge cases
       const result = yamlParser?.parse(securityYaml, { filepath: 'components/securitySchemes/BearerAuth.yaml' });
       expect(result).toBeDefined();
       expect(result?.type).toBe('openapi-yaml');
@@ -209,7 +209,7 @@ bearerFormat: JWT`;
       const serverYaml = `url: https://api.example.com
 description: Production server`;
 
-      // @ts-ignore We are testing edge cases
+      // @ts-expect-error We are testing edge cases
       const result = yamlParser?.parse(serverYaml, { filepath: 'servers/production.yaml' });
       expect(result).toBeDefined();
       expect(result?.type).toBe('openapi-yaml');
@@ -222,7 +222,7 @@ description: Production server`;
       const tagYaml = `name: users
 description: User management operations`;
 
-      // @ts-ignore We are testing edge cases
+      // @ts-expect-error We are testing edge cases
       const result = yamlParser?.parse(tagYaml, { filepath: 'tags/users.yaml' });
       expect(result).toBeDefined();
       expect(result?.type).toBe('openapi-yaml');
@@ -235,7 +235,7 @@ description: User management operations`;
       const externalDocsYaml = `url: https://example.com/docs
 description: External documentation`;
 
-      // @ts-ignore We are testing edge cases
+      // @ts-expect-error We are testing edge cases
       const result = yamlParser?.parse(externalDocsYaml, { filepath: 'externalDocs/api.yaml' });
       expect(result).toBeDefined();
       expect(result?.type).toBe('openapi-yaml');
@@ -251,7 +251,7 @@ description: External documentation`;
     '200':
       description: Success`;
 
-      // @ts-ignore We are testing edge cases
+      // @ts-expect-error We are testing edge cases
       const result = yamlParser?.parse(webhookYaml, { filepath: 'webhooks/messageCreated.yaml' });
       expect(result).toBeDefined();
       expect(result?.type).toBe('openapi-yaml');
@@ -275,7 +275,7 @@ description: External documentation`;
         }
       };
 
-      // @ts-ignore We are testing edge cases
+      // @ts-expect-error We are testing edge cases
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
       
@@ -311,7 +311,7 @@ description: External documentation`;
         }
       };
 
-      // @ts-ignore We are testing edge cases
+      // @ts-expect-error We are testing edge cases
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
       
@@ -349,7 +349,7 @@ description: External documentation`;
         }
       };
 
-      // @ts-ignore We are testing edge cases
+      // @ts-expect-error We are testing edge cases
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
       

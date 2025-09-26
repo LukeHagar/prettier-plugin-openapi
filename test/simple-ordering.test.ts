@@ -18,7 +18,7 @@ describe('Simple Key Ordering Tests', () => {
       }
     };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
     expect(result).toBeDefined();
     
@@ -71,7 +71,7 @@ describe('Simple Key Ordering Tests', () => {
       }
     };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
     expect(result).toBeDefined();
 
@@ -122,7 +122,7 @@ describe('Simple Key Ordering Tests', () => {
       }
     };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
     expect(result).toBeDefined();
 
@@ -159,7 +159,7 @@ describe('Simple Key Ordering Tests', () => {
       }
     };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
     expect(result).toBeDefined();
 

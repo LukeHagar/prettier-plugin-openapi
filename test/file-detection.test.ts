@@ -17,7 +17,7 @@ paths:
         '200':
           description: Success`;
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = yamlParser?.parse(testYaml, { filepath: 'openapi.yaml' });
     
     expect(result).toBeDefined();
@@ -39,7 +39,7 @@ required:
   - id
   - name`;
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = yamlParser?.parse(schemaYaml, { filepath: 'components/schemas/User.yaml' });
     
     expect(result).toBeDefined();
@@ -58,7 +58,7 @@ description: User ID
 schema:
   type: integer`;
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = yamlParser?.parse(parameterYaml, { filepath: 'components/parameters/UserId.yaml' });
     
     expect(result).toBeDefined();
@@ -81,7 +81,7 @@ content:
         name:
           type: string`;
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = yamlParser?.parse(responseYaml, { filepath: 'components/responses/UserResponse.yaml' });
     
     expect(result).toBeDefined();
@@ -106,7 +106,7 @@ post:
         schema:
           type: object`;
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = yamlParser?.parse(pathYaml, { filepath: 'paths/users.yaml' });
     
     expect(result).toBeDefined();
@@ -124,7 +124,7 @@ scheme: bearer
 bearerFormat: JWT
 description: JWT authentication`;
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = yamlParser?.parse(securityYaml, { filepath: 'components/securitySchemes/BearerAuth.yaml' });
     
     expect(result).toBeDefined();
@@ -140,7 +140,7 @@ description: JWT authentication`;
 age: 30
 city: New York`;
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     expect(() => yamlParser?.parse(nonOpenAPIYaml, { filepath: 'config/data.yaml' })).toThrow('Not an OpenAPI file');
   });
 
@@ -152,7 +152,7 @@ city: New York`;
 age: 30
 city: New York`;
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = yamlParser?.parse(simpleYaml, { filepath: 'components/schemas/User.yaml' });
     expect(result).toBeDefined();
     expect(result?.type).toBe('openapi-yaml');
@@ -183,7 +183,7 @@ properties:
     ];
 
     paths.forEach(path => {
-      // @ts-ignore We are mocking things here
+      // @ts-expect-error We are mocking things here
       const result = yamlParser?.parse(componentYaml, { filepath: path });
       expect(result).toBeDefined();
       expect(result?.type).toBe('openapi-yaml');

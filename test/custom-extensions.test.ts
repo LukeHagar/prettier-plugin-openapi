@@ -14,7 +14,7 @@ describe('Custom Extensions Support', () => {
       'x-metadata': { 'custom': 'data' }
     };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = jsonParser?.parse(JSON.stringify(testJson), {});
     expect(result).toBeDefined();
     expect(result?.content).toBeDefined();
@@ -35,7 +35,7 @@ describe('Custom Extensions Support', () => {
       }
     };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = jsonParser?.parse(JSON.stringify(testJson), {});
     expect(result).toBeDefined();
     expect(result?.content.info).toBeDefined();
@@ -61,7 +61,7 @@ describe('Custom Extensions Support', () => {
       }
     };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = jsonParser?.parse(JSON.stringify(testJson), {});
     expect(result).toBeDefined();
     expect(result?.content.paths['/test'].get['x-rate-limit']).toBe(100);
@@ -88,7 +88,7 @@ describe('Custom Extensions Support', () => {
       }
     };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = jsonParser?.parse(JSON.stringify(testJson), {});
     expect(result).toBeDefined();
     expect(result?.content.components.schemas.User['x-custom-type']).toBe('entity');
@@ -108,7 +108,7 @@ describe('Custom Extensions Support', () => {
       }
     };
 
-// @ts-ignore We are mocking things here so we don't need to pass a print function
+// @ts-expect-error We are mocking things here so we don't need to pass a print function
     const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
     expect(result).toBeDefined();
     expect(result).toContain('"x-custom-field"');
@@ -129,7 +129,7 @@ describe('Custom Extensions Support', () => {
       }
     };
 
-    // @ts-ignore We are mocking things here so we don't need to pass a print function
+    // @ts-expect-error We are mocking things here so we don't need to pass a print function
     const result = yamlPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
     expect(result).toBeDefined();
     expect(result).toContain('x-custom-field:');
@@ -148,7 +148,7 @@ describe('Custom Extensions Support', () => {
       'another-unknown': 'value'
     };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = jsonParser?.parse(JSON.stringify(testJson), {});
     expect(result).toBeDefined();
     expect(result?.content).toBeDefined();
@@ -169,7 +169,7 @@ describe('Custom Extensions Support', () => {
         }
       };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
@@ -207,7 +207,7 @@ describe('Custom Extensions Support', () => {
         }
       };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
@@ -249,7 +249,7 @@ describe('Custom Extensions Support', () => {
         }
       };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
@@ -295,7 +295,7 @@ describe('Custom Extensions Support', () => {
         }
       };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
@@ -330,7 +330,7 @@ describe('Custom Extensions Support', () => {
         }
       };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
@@ -370,7 +370,7 @@ describe('Custom Extensions Support', () => {
         }
       };
 
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 

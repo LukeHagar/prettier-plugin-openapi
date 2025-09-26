@@ -1,4 +1,4 @@
-import { Plugin } from 'prettier';
+import type { Plugin } from 'prettier';
 import * as yaml from 'js-yaml';
 import { getVendorExtensions } from './extensions/vendor-loader.js';
 

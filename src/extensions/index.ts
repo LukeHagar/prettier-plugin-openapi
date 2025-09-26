@@ -18,13 +18,13 @@ import {
   TagKeys,
   ExternalDocsKeys,
   WebhookKeys,
-  OAuthFlowKeys,
-  ContactKeys,
-  LicenseKeys,
-  ComponentsKeys,
-  ServerVariableKeys,
+  type OAuthFlowKeys,
+  type ContactKeys,
+  type LicenseKeys,
+  type ComponentsKeys,
+  type ServerVariableKeys,
 } from '../keys.js';
-import { getVendorExtensions as loadVendorExtensions, VendorModule } from './vendor-loader.js';
+import { getVendorExtensions as loadVendorExtensions, type VendorModule } from './vendor-loader.js';
 
 export interface VendorExtensions {
   [context: string]: (
@@ -55,38 +55,38 @@ export function defineConfig(config: VendorModule): VendorModule {
 }
 
 // Type definitions with hover documentation
-export type TopLevelKeys = typeof RootKeys[number];
-export type InfoKeys = typeof InfoKeys[number];
-export type OperationKeys = typeof OperationKeys[number];
-export type ParameterKeys = typeof ParameterKeys[number];
-export type SchemaKeys = typeof SchemaKeys[number];
-export type ResponseKeys = typeof ResponseKeys[number];
-export type SecuritySchemeKeys = typeof SecuritySchemeKeys[number];
-export type ServerKeys = typeof ServerKeys[number];
-export type TagKeys = typeof TagKeys[number];
-export type ExternalDocsKeys = typeof ExternalDocsKeys[number];
-export type WebhookKeys = typeof WebhookKeys[number];
-export type OAuthFlowKeys = typeof OAuthFlowKeys[number];
-export type ContactKeys = typeof ContactKeys[number];
-export type LicenseKeys = typeof LicenseKeys[number];
-export type ComponentsKeys = typeof ComponentsKeys[number];
-export type ServerVariableKeys = typeof ServerVariableKeys[number];
+export type TopLevelKeysType = typeof RootKeys[number];
+export type InfoKeysType = typeof InfoKeys[number];
+export type OperationKeysType = typeof OperationKeys[number];
+export type ParameterKeysType = typeof ParameterKeys[number];
+export type SchemaKeysType = typeof SchemaKeys[number];
+export type ResponseKeysType = typeof ResponseKeys[number];
+export type SecuritySchemeKeysType = typeof SecuritySchemeKeys[number];
+export type ServerKeysType = typeof ServerKeys[number];
+export type TagKeysType = typeof TagKeys[number];
+export type ExternalDocsKeysType = typeof ExternalDocsKeys[number];
+export type WebhookKeysType = typeof WebhookKeys[number];
+export type OAuthFlowKeysType = typeof OAuthFlowKeys[number];
+export type ContactKeysType = typeof ContactKeys[number];
+export type LicenseKeysType = typeof LicenseKeys[number];
+export type ComponentsKeysType = typeof ComponentsKeys[number];
+export type ServerVariableKeysType = typeof ServerVariableKeys[number];
 
 // Context-specific key types for better IntelliSense
 export interface ContextKeys {
-  'top-level': TopLevelKeys;
-  'info': InfoKeys;
-  'operation': OperationKeys;
-  'parameter': ParameterKeys;
-  'schema': SchemaKeys;
-  'response': ResponseKeys;
-  'securityScheme': SecuritySchemeKeys;
-  'server': ServerKeys;
-  'tag': TagKeys;
-  'externalDocs': ExternalDocsKeys;
-  'webhook': WebhookKeys;
-  'definitions': SchemaKeys; // Definitions use schema keys
-  'securityDefinitions': SecuritySchemeKeys; // Security definitions use security scheme keys
+  'top-level': TopLevelKeysType;
+  'info': InfoKeysType;
+  'operation': OperationKeysType;
+  'parameter': ParameterKeysType;
+  'schema': SchemaKeysType;
+  'response': ResponseKeysType;
+  'securityScheme': SecuritySchemeKeysType;
+  'server': ServerKeysType;
+  'tag': TagKeysType;
+  'externalDocs': ExternalDocsKeysType;
+  'webhook': WebhookKeysType;
+  'definitions': SchemaKeysType; // Definitions use schema keys
+  'securityDefinitions': SecuritySchemeKeysType; // Security definitions use security scheme keys
 }
 
 // Helper function to get available keys for a context

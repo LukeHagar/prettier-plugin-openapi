@@ -29,14 +29,14 @@ describe('Prettier OpenAPI Plugin', () => {
 }`;
 
     // Parse the JSON
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const parsed = jsonParser?.parse(inputJson, {});
     expect(parsed).toBeDefined();
     expect(parsed?.type).toBe('openapi-json');
     expect(parsed?.content).toBeDefined();
 
     // Format the parsed content
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = jsonPrinter?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
     
     expect(result).toBeDefined();
@@ -76,14 +76,14 @@ info:
 openapi: 3.0.0`;
 
     // Parse the YAML
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const parsed = yamlParser?.parse(inputYaml, {});
     expect(parsed).toBeDefined();
     expect(parsed?.type).toBe('openapi-yaml');
     expect(parsed?.content).toBeDefined();
 
     // Format the parsed content
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = yamlPrinter?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
     
     expect(result).toBeDefined();
@@ -143,14 +143,14 @@ openapi: 3.0.0`;
 }`;
 
     // Parse the JSON
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const parsed = jsonParser?.parse(inputJson, {});
     expect(parsed).toBeDefined();
     expect(parsed?.type).toBe('openapi-json');
     expect(parsed?.content).toBeDefined();
 
     // Format the parsed content
-    // @ts-ignore We are mocking things here
+    // @ts-expect-error We are mocking things here
     const result = jsonPrinter?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
     
     expect(result).toBeDefined();
@@ -195,14 +195,14 @@ describe('Key Ordering Tests', () => {
 }`;
 
       // Parse the JSON
-      // @ts-ignore We are mocking things here
+      // @ts-expect-error We are mocking things here
       const parsed = jsonParser?.parse(inputJson, {});
       expect(parsed).toBeDefined();
       expect(parsed?.type).toBe('openapi-json');
       expect(parsed?.content).toBeDefined();
 
       // Format the parsed content
-      // @ts-ignore We are mocking things here
+      // @ts-expect-error We are mocking things here
       const result = jsonPrinter?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
 
       expect(result).toBeDefined();
@@ -254,14 +254,14 @@ describe('Key Ordering Tests', () => {
 }`;
 
       // Parse the JSON
-      // @ts-ignore We are mocking things here
+      // @ts-expect-error We are mocking things here
       const parsed = jsonParser?.parse(inputJson, {});
       expect(parsed).toBeDefined();
       expect(parsed?.type).toBe('openapi-json');
       expect(parsed?.content).toBeDefined();
 
       // Format the parsed content
-      // @ts-ignore We are mocking things here
+      // @ts-expect-error We are mocking things here
       const result = jsonPrinter?.print({ getValue: () => parsed }, { tabWidth: 2 }, () => '');
 
       expect(result).toBeDefined();

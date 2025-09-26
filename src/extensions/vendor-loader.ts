@@ -4,7 +4,7 @@
  * Loads vendor extensions using static imports for ES module compatibility.
  */
 
-import { before, after, ContextKeys } from './index.js';
+import { before, after, type ContextKeys } from './index.js';
 
 // Import vendor extensions statically
 import { speakeasy } from './vendor/speakeasy.js';
@@ -68,7 +68,7 @@ export function getVendorExtensions(customVendorModules?: VendorModule[]): Recor
             
             // Check for collisions before adding extensions
             for (const [extensionKey, position] of Object.entries(contextExtensions)) {
-              if (extensions[context].hasOwnProperty(extensionKey)) {
+              if (Object.hasOwn(extensions[context], extensionKey)) {
                 const existingVendor = extensionSources[context][extensionKey];
                 const currentVendor = vendorModule.info.name;
                 

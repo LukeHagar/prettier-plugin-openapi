@@ -20,7 +20,7 @@ describe('Key Ordering Tests', () => {
           }
         }
       };
-// @ts-ignore We are mocking things here so we don't need to pass a print function
+// @ts-expect-error We are mocking things here so we don't need to pass a print function
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
@@ -73,7 +73,7 @@ describe('Key Ordering Tests', () => {
         }
       };
 
-      // @ts-ignore We are mocking things here so we don't need to pass a print function
+      // @ts-expect-error We are mocking things here so we don't need to pass a print function
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
@@ -158,7 +158,7 @@ describe('Key Ordering Tests', () => {
         }
       };
 
-      // @ts-ignore We are mocking things here so we don't need to pass a print function
+      // @ts-expect-error We are mocking things here so we don't need to pass a print function
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
@@ -265,7 +265,7 @@ describe('Key Ordering Tests', () => {
           }
         }
       };
-      // @ts-ignore We are mocking things here so we don't need to pass a print function
+      // @ts-expect-error We are mocking things here so we don't need to pass a print function
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
@@ -319,7 +319,7 @@ describe('Key Ordering Tests', () => {
           }
         }
       };
-      // @ts-ignore We are mocking things here so we don't need to pass a print function
+      // @ts-expect-error We are mocking things here so we don't need to pass a print function
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
@@ -392,7 +392,7 @@ describe('Key Ordering Tests', () => {
           }
         }
       };
-      // @ts-ignore We are mocking things here so we don't need to pass a print function
+      // @ts-expect-error We are mocking things here so we don't need to pass a print function
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
@@ -438,7 +438,7 @@ describe('Key Ordering Tests', () => {
           ]
         }
       };
-// @ts-ignore We are mocking things here so we don't need to pass a print function
+// @ts-expect-error We are mocking things here so we don't need to pass a print function
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
@@ -482,7 +482,7 @@ describe('Key Ordering Tests', () => {
           ]
         }
       };
-// @ts-ignore We are mocking things here so we don't need to pass a print function
+// @ts-expect-error We are mocking things here so we don't need to pass a print function
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
@@ -521,7 +521,7 @@ describe('Key Ordering Tests', () => {
           }
         }
       };
-// @ts-ignore We are mocking things here so we don't need to pass a print function
+// @ts-expect-error We are mocking things here so we don't need to pass a print function
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
@@ -554,7 +554,7 @@ describe('Key Ordering Tests', () => {
           }
         }
       };
-// @ts-ignore We are mocking things here so we don't need to pass a print function
+// @ts-expect-error We are mocking things here so we don't need to pass a print function
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
@@ -598,7 +598,7 @@ describe('Key Ordering Tests', () => {
           }
         }
       };
-// @ts-ignore We are mocking things here so we don't need to pass a print function
+// @ts-expect-error We are mocking things here so we don't need to pass a print function
       const result = jsonPrinter?.print({ getValue: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
