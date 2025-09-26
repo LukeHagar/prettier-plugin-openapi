@@ -62,15 +62,15 @@ jobs:
         id: version-check
         shell: bash
         run: |
-          # Get the latest GitHub release version
-          LATEST_RELEASE=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases/latest" | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).tag_name" 2>/dev/null || echo "")
+          # Get the latest GitHub release version using jq for reliable JSON parsing
+          LATEST_RELEASE=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r '.tag_name // empty' 2>/dev/null || echo "")
           CURRENT_VERSION="${{ steps.current-version.outputs.version }}"
           
           echo "Latest release: $LATEST_RELEASE"
           echo "Current version: $CURRENT_VERSION"
           
           # Remove 'v' prefix from release tag for comparison
-          if [ -n "$LATEST_RELEASE" ]; then
+          if [ -n "$LATEST_RELEASE" ] && [ "$LATEST_RELEASE" != "null" ]; then
             LATEST_VERSION=$(echo "$LATEST_RELEASE" | sed 's/^v//')
           else
             LATEST_VERSION="0.0.0"
