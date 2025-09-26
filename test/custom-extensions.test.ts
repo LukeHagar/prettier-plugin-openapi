@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'bun:test';
-import plugin from '../src/index';
+import {parsers, printers} from '../src/index';
 
 describe('Custom Extensions Support', () => {
   it('should handle custom extensions in top-level keys', () => {
-    const parser = plugin.parsers?.['openapi-parser'];
+    const parser = parsers?.['openapi-parser'];
     expect(parser).toBeDefined();
 
     const testJson = {
@@ -21,7 +21,7 @@ describe('Custom Extensions Support', () => {
   });
 
   it('should handle custom extensions in info section', () => {
-    const parser = plugin.parsers?.['openapi-parser'];
+    const parser = parsers?.['openapi-parser'];
     expect(parser).toBeDefined();
 
     const testJson = {
@@ -43,7 +43,7 @@ describe('Custom Extensions Support', () => {
   });
 
   it('should handle custom extensions in operation objects', () => {
-    const parser = plugin.parsers?.['openapi-parser'];
+    const parser = parsers?.['openapi-parser'];
     expect(parser).toBeDefined();
 
     const testJson = {
@@ -68,7 +68,7 @@ describe('Custom Extensions Support', () => {
   });
 
   it('should handle custom extensions in schema objects', () => {
-    const parser = plugin.parsers?.['openapi-parser'];
+    const parser = parsers?.['openapi-parser'];
     expect(parser).toBeDefined();
 
     const testJson = {
@@ -95,10 +95,12 @@ describe('Custom Extensions Support', () => {
   });
 
   it('should format JSON with custom extensions', () => {
-    const printer = plugin.printers?.['openapi-ast'];
+    const printer = printers?.['openapi-ast'];
     expect(printer).toBeDefined();
 
     const testData = {
+      isOpenAPI: true,
+      format: 'json',
       content: {
         'x-custom-field': 'value',
         'openapi': '3.0.0',
@@ -109,17 +111,19 @@ describe('Custom Extensions Support', () => {
     };
 
 // @ts-expect-error We are mocking things here so we don't need to pass a print function
-    const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+    const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
     expect(result).toBeDefined();
     expect(result).toContain('x-custom-field');
     expect(result).toContain('openapi');
   });
 
   it('should format YAML with custom extensions', () => {
-    const printer = plugin.printers?.['openapi-ast'];
+    const printer = printers?.['openapi-ast'];
     expect(printer).toBeDefined();
 
     const testData = {
+      isOpenAPI: true,
+      format: 'yaml',
       content: {
         'x-custom-field': 'value',
         'openapi': '3.0.0',
@@ -130,14 +134,14 @@ describe('Custom Extensions Support', () => {
     };
 
     // @ts-expect-error We are mocking things here so we don't need to pass a print function
-    const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+    const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
     expect(result).toBeDefined();
     expect(result).toContain('x-custom-field:');
     expect(result).toContain('openapi:');
   });
 
   it('should handle unknown keys alphabetically at the end', () => {
-    const parser = plugin.parsers?.['openapi-parser'];
+    const parser = parsers?.['openapi-parser'];
     expect(parser).toBeDefined();
 
     const testJson = {
@@ -156,10 +160,12 @@ describe('Custom Extensions Support', () => {
 
   describe('Custom extension positioning', () => {
     it('should position custom extensions correctly in top-level', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'json',
         content: {
           'x-custom-field': 'value',
           'openapi': '3.0.0',
@@ -170,7 +176,7 @@ describe('Custom Extensions Support', () => {
       };
 
     // @ts-expect-error We are mocking things here
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
       if (!result) {
@@ -193,10 +199,12 @@ describe('Custom Extensions Support', () => {
     });
 
     it('should position custom extensions correctly in info section', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'yaml',
         content: {
           'openapi': '3.0.0',
           'info': {
@@ -210,7 +218,7 @@ describe('Custom Extensions Support', () => {
       };
 
     // @ts-expect-error We are mocking things here
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
       if (!result) {
@@ -233,10 +241,12 @@ describe('Custom Extensions Support', () => {
     });
 
     it('should position custom extensions correctly in operation objects', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'yaml',
         content: {
           'openapi': '3.0.0',
           'info': { 'title': 'Test API', 'version': '1.0.0' },
@@ -254,7 +264,7 @@ describe('Custom Extensions Support', () => {
       };
 
     // @ts-expect-error We are mocking things here
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
       if (!result) {
@@ -274,10 +284,12 @@ describe('Custom Extensions Support', () => {
     });
 
     it('should position custom extensions correctly in schema objects', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'yaml',
         content: {
           'openapi': '3.0.0',
           'info': { 'title': 'Test API', 'version': '1.0.0' },
@@ -295,7 +307,7 @@ describe('Custom Extensions Support', () => {
       };
 
     // @ts-expect-error We are mocking things here
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
       if (!result) {
@@ -318,10 +330,12 @@ describe('Custom Extensions Support', () => {
 
   describe('Unknown key handling', () => {
     it('should sort unknown keys alphabetically at the end', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'json',
         content: {
           'openapi': '3.0.0',
           'info': { 'title': 'Test API', 'version': '1.0.0' },
@@ -332,7 +346,7 @@ describe('Custom Extensions Support', () => {
       };
 
     // @ts-expect-error We are mocking things here
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
       if (!result) {
@@ -358,10 +372,12 @@ describe('Custom Extensions Support', () => {
     });
 
     it('should handle mixed custom extensions and unknown keys', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'json',
         content: {
           'openapi': '3.0.0',
           'info': { 'title': 'Test API', 'version': '1.0.0' },
@@ -374,7 +390,7 @@ describe('Custom Extensions Support', () => {
       };
 
     // @ts-expect-error We are mocking things here
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
       if (!result) {

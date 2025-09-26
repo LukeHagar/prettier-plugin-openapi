@@ -1,14 +1,15 @@
 import { describe, it, expect } from 'bun:test';
-import plugin from '../src/index';
+import { printers } from '../src/index';
 
 describe('Key Ordering Tests', () => {
   describe('Info section key ordering', () => {
     it('should sort info keys correctly', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
-        type: 'openapi',
+        isOpenAPI: true,
+        format: 'json',
         content: {
           openapi: '3.0.0',
           info: {
@@ -21,10 +22,9 @@ describe('Key Ordering Tests', () => {
           }
         },
         originalText: '',
-        format: 'json'
       };
-// @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
+      // @ts-expect-error We are mocking things here so we don't need to pass a print function
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
@@ -32,7 +32,7 @@ describe('Key Ordering Tests', () => {
       }
 
       const resultString = result.toString();
-      
+
       // Check that info keys appear in the correct order
       const titleIndex = resultString.indexOf('title');
       const versionIndex = resultString.indexOf('version');
@@ -51,11 +51,12 @@ describe('Key Ordering Tests', () => {
 
   describe('Operation key ordering', () => {
     it('should sort operation keys correctly', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
-        type: 'openapi',
+        isOpenAPI: true,
+        format: 'yaml',
         content: {
           openapi: '3.0.0',
           info: { title: 'Test API', version: '1.0.0' },
@@ -77,12 +78,11 @@ describe('Key Ordering Tests', () => {
             }
           }
         },
-        originalText: '',
-        format: 'json'
+        originalText: ''
       };
 
       // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
@@ -90,7 +90,7 @@ describe('Key Ordering Tests', () => {
       }
 
       const resultString = result.toString();
-      
+
       // Check that operation keys appear in the correct order
       const summaryIndex = resultString.indexOf('summary');
       const operationIdIndex = resultString.indexOf('operationId');
@@ -119,10 +119,12 @@ describe('Key Ordering Tests', () => {
 
   describe('Schema key ordering', () => {
     it('should sort schema keys correctly', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'yaml',
         content: {
           openapi: '3.0.0',
           info: { title: 'Test API', version: '1.0.0' },
@@ -169,7 +171,8 @@ describe('Key Ordering Tests', () => {
       };
 
       // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 });
+      console.log('result', result);
       expect(result).toBeDefined();
 
       if (!result) {
@@ -177,7 +180,7 @@ describe('Key Ordering Tests', () => {
       }
 
       const resultString = result.toString();
-      
+
       const typeIndex = resultString.indexOf('type:');
       const formatIndex = resultString.indexOf('format:');
       const titleIndex = resultString.indexOf('title:');
@@ -247,10 +250,12 @@ describe('Key Ordering Tests', () => {
 
   describe('Response key ordering', () => {
     it('should sort response keys correctly', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'json',
         content: {
           openapi: '3.0.0',
           info: { title: 'Test API', version: '1.0.0' },
@@ -271,7 +276,7 @@ describe('Key Ordering Tests', () => {
         }
       };
       // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
@@ -294,10 +299,12 @@ describe('Key Ordering Tests', () => {
 
   describe('Parameter key ordering', () => {
     it('should sort parameter keys correctly', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'yaml',
         content: {
           openapi: '3.0.0',
           info: { title: 'Test API', version: '1.0.0' },
@@ -327,7 +334,7 @@ describe('Key Ordering Tests', () => {
         }
       };
       // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
@@ -335,7 +342,7 @@ describe('Key Ordering Tests', () => {
       }
 
       const resultString = result.toString();
-      
+
       const nameIndex = resultString.indexOf('name:');
       const inIndex = resultString.indexOf('in:');
       const descriptionIndex = resultString.indexOf('description:');
@@ -366,10 +373,12 @@ describe('Key Ordering Tests', () => {
 
   describe('Security scheme key ordering', () => {
     it('should sort security scheme keys correctly', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'yaml',
         content: {
           openapi: '3.0.0',
           info: { title: 'Test API', version: '1.0.0' },
@@ -395,7 +404,7 @@ describe('Key Ordering Tests', () => {
         }
       };
       // @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
@@ -426,10 +435,12 @@ describe('Key Ordering Tests', () => {
 
   describe('Server key ordering', () => {
     it('should sort server keys correctly', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'json',
         content: {
           openapi: '3.0.0',
           info: { title: 'Test API', version: '1.0.0' },
@@ -442,8 +453,8 @@ describe('Key Ordering Tests', () => {
           ]
         }
       };
-// @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
+      // @ts-expect-error We are mocking things here so we don't need to pass a print function
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
@@ -451,7 +462,7 @@ describe('Key Ordering Tests', () => {
       }
 
       const resultString = result.toString();
-      
+
       const nameIndex = resultString.indexOf('name');
       const descriptionIndex = resultString.indexOf('description');
       const urlIndex = resultString.indexOf('url');
@@ -465,10 +476,12 @@ describe('Key Ordering Tests', () => {
 
   describe('Tag key ordering', () => {
     it('should sort tag keys correctly', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'json',
         content: {
           openapi: '3.0.0',
           info: { title: 'Test API', version: '1.0.0' },
@@ -481,8 +494,8 @@ describe('Key Ordering Tests', () => {
           ]
         }
       };
-// @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
+      // @ts-expect-error We are mocking things here so we don't need to pass a print function
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
@@ -490,7 +503,7 @@ describe('Key Ordering Tests', () => {
       }
 
       const resultString = result.toString();
-      
+
       const nameIndex = resultString.indexOf('name');
       const descriptionIndex = resultString.indexOf('description');
       const externalDocsIndex = resultString.indexOf('externalDocs');
@@ -502,10 +515,12 @@ describe('Key Ordering Tests', () => {
 
   describe('External docs key ordering', () => {
     it('should sort external docs keys correctly', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'json',
         content: {
           openapi: '3.0.0',
           info: { title: 'Test API', version: '1.0.0' },
@@ -515,8 +530,8 @@ describe('Key Ordering Tests', () => {
           }
         }
       };
-// @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
+      // @ts-expect-error We are mocking things here so we don't need to pass a print function
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
@@ -524,7 +539,7 @@ describe('Key Ordering Tests', () => {
       }
 
       const resultString = result.toString();
-      
+
       // Check that external docs keys appear in the correct order
       const descriptionIndex = resultString.indexOf('description');
       const urlIndex = resultString.indexOf('url');
@@ -535,10 +550,12 @@ describe('Key Ordering Tests', () => {
 
   describe('Path sorting', () => {
     it('should sort paths by specificity', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'json',
         content: {
           openapi: '3.0.0',
           info: { title: 'Test API', version: '1.0.0' },
@@ -550,8 +567,8 @@ describe('Key Ordering Tests', () => {
           }
         }
       };
-// @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
+      // @ts-expect-error We are mocking things here so we don't need to pass a print function
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
@@ -559,7 +576,7 @@ describe('Key Ordering Tests', () => {
       }
 
       const resultString = result.toString();
-            
+
       // Check that paths are sorted by specificity (fewer parameters first)
       const usersIndex = resultString.indexOf('/users');
       const usersIdIndex = resultString.indexOf('/users/{id}');
@@ -574,10 +591,12 @@ describe('Key Ordering Tests', () => {
 
   describe('Response code sorting', () => {
     it('should sort response codes numerically', () => {
-      const printer = plugin.printers?.['openapi-ast'];
+      const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
 
       const testData = {
+        isOpenAPI: true,
+        format: 'json',
         content: {
           openapi: '3.0.0',
           info: { title: 'Test API', version: '1.0.0' },
@@ -596,8 +615,8 @@ describe('Key Ordering Tests', () => {
           }
         }
       };
-// @ts-expect-error We are mocking things here so we don't need to pass a print function
-      const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 });
+      // @ts-expect-error We are mocking things here so we don't need to pass a print function
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 });
       expect(result).toBeDefined();
 
       if (!result) {
@@ -605,7 +624,7 @@ describe('Key Ordering Tests', () => {
       }
 
       const resultString = result.toString();
-            
+
       // Check that response codes are sorted numerically
       const code200Index = resultString.indexOf('200');
       const code400Index = resultString.indexOf('400');

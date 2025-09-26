@@ -4,7 +4,7 @@
  * Loads vendor extensions using static imports for ES module compatibility.
  */
 
-import { before, after, KeyMap, VendorExtensions } from './index.js';
+import { before, after, type KeyMap, type VendorExtensions } from './index.js';
 
 // Import vendor extensions statically
 import { speakeasy } from './vendor/speakeasy.js';

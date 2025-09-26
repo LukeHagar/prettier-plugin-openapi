@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'bun:test';
-import plugin from '../src/index';
+import { printers } from '../src/index';
 
 describe('Simple Key Ordering Tests', () => {
   it('should sort top-level OpenAPI keys correctly', () => {
-    const printer = plugin.printers?.['openapi-ast'];
+    const printer = printers?.['openapi-ast'];
     expect(printer).toBeDefined();
 
     const testData = {
+      isOpenAPI: true,
+      format: 'yaml',
       content: {
         paths: { '/test': { get: {} } },
         components: { schemas: {} },
@@ -19,7 +21,7 @@ describe('Simple Key Ordering Tests', () => {
     };
 
     // @ts-expect-error We are mocking things here
-    const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+    const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
     expect(result).toBeDefined();
     
     if (!result) {
@@ -46,10 +48,12 @@ describe('Simple Key Ordering Tests', () => {
   });
 
   it('should sort operation keys correctly', () => {
-    const printer = plugin.printers?.['openapi-ast'];
+    const printer = printers?.['openapi-ast'];
     expect(printer).toBeDefined();
 
     const testData = {
+      isOpenAPI: true,
+      format: 'json',
       content: {
         openapi: '3.0.0',
         info: { title: 'Test API', version: '1.0.0' },
@@ -74,7 +78,7 @@ describe('Simple Key Ordering Tests', () => {
     };
 
     // @ts-expect-error We are mocking things here
-    const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+    const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
     expect(result).toBeDefined();
 
     if (!result) {
@@ -109,10 +113,12 @@ describe('Simple Key Ordering Tests', () => {
   });
 
   it('should sort info keys correctly', () => {
-    const printer = plugin.printers?.['openapi-ast'];
+    const printer = printers?.['openapi-ast'];
     expect(printer).toBeDefined();
 
     const testData = {
+      isOpenAPI: true,
+      format: 'json',
       content: {
         openapi: '3.0.0',
         info: {
@@ -127,7 +133,7 @@ describe('Simple Key Ordering Tests', () => {
     };
 
     // @ts-expect-error We are mocking things here
-    const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+    const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
     expect(result).toBeDefined();
 
     if (!result) {
@@ -135,8 +141,6 @@ describe('Simple Key Ordering Tests', () => {
     }
 
     const resultString = result.toString();
-
-    console.log(resultString);
     
     // Check that info keys appear in the correct order
     const titleIndex = resultString.indexOf('title');
@@ -154,10 +158,12 @@ describe('Simple Key Ordering Tests', () => {
   });
 
   it('should handle custom extensions correctly', () => {
-    const printer = plugin.printers?.['openapi-ast'];
+    const printer = printers?.['openapi-ast'];
     expect(printer).toBeDefined();
 
     const testData = {
+      isOpenAPI: true,
+      format: 'json',
       content: {
         'x-custom-field': 'value',
         'openapi': '3.0.0',
@@ -168,7 +174,8 @@ describe('Simple Key Ordering Tests', () => {
     };
 
     // @ts-expect-error We are mocking things here
-    const result = printer?.print({ getValue: () => testData }, { tabWidth: 2 }, () => '');
+    const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
+    console.log('result', result);
     expect(result).toBeDefined();
 
     if (!result) {

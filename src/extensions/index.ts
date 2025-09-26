@@ -9,6 +9,7 @@
 import {
   RootKeys,
   InfoKeys,
+  ComponentsKeys,
   OperationKeys,
   ParameterKeys,
   SchemaKeys,
@@ -18,13 +19,21 @@ import {
   TagKeys,
   ExternalDocsKeys,
   WebhookKeys,
-  OAuthFlowKeys,
+  PathItemKeys,
+  RequestBodyKeys,
+  MediaTypeKeys,
+  EncodingKeys,
+  HeaderKeys,
+  LinkKeys,
+  ExampleKeys,
+  DiscriminatorKeys,
+  XMLKeys,
   ContactKeys,
   LicenseKeys,
-  ComponentsKeys,
+  OAuthFlowKeys,
   ServerVariableKeys,
 } from '../keys.js';
-import { getVendorExtensions, type VendorModule } from './vendor-loader.js';
+import { type VendorModule } from './vendor-loader.js';
 
 /**
  * Type-safe context-specific extension functions
@@ -528,6 +537,307 @@ export interface VendorExtensions {
    * ```
    */
   'securityDefinitions'?: ContextExtensionFunction<'securityDefinitions'>;
+  /** Components section extensions
+   * 
+   * Available keys:
+   * - `securitySchemes`
+   * - `pathItems`
+   * - `parameters`
+   * - `headers`
+   * - `requestBodies`
+   * - `responses`
+   * - `callbacks`
+   * - `links`
+   * - `schemas`
+   * - `examples`
+   * 
+   * @example
+   * ```typescript
+   * 'components': (before, after) => {
+   *   return {
+   *     'x-my-extension': before('schemas'),
+   *     'x-my-config': after('examples')
+   *   };
+   * }
+   * ```
+   */
+  'components'?: ContextExtensionFunction<'components'>;
+  /** Path item extensions
+   * 
+   * Available keys:
+   * - `$ref`
+   * - `summary`
+   * - `description`
+   * - `servers`
+   * - `parameters`
+   * - `get`
+   * - `put`
+   * - `post`
+   * - `patch`
+   * - `delete`
+   * - `options`
+   * - `head`
+   * - `trace`
+   * 
+   * @example
+   * ```typescript
+   * 'pathItem': (before, after) => {
+   *   return {
+   *     'x-my-extension': before('summary'),
+   *     'x-my-config': after('parameters')
+   *   };
+   * }
+   * ```
+   */
+  'pathItem'?: ContextExtensionFunction<'pathItem'>;
+  /** Request body extensions
+   * 
+   * Available keys:
+   * - `description`
+   * - `required`
+   * - `content`
+   * 
+   * @example
+   * ```typescript
+   * 'requestBody': (before, after) => {
+   *   return {
+   *     'x-my-extension': before('description'),
+   *     'x-my-config': after('content')
+   *   };
+   * }
+   * ```
+   */
+  'requestBody'?: ContextExtensionFunction<'requestBody'>;
+  /** Media type extensions
+   * 
+   * Available keys:
+   * - `schema`
+   * - `example`
+   * - `examples`
+   * - `encoding`
+   * 
+   * @example
+   * ```typescript
+   * 'mediaType': (before, after) => {
+   *   return {
+   *     'x-my-extension': before('schema'),
+   *     'x-my-config': after('example')
+   *   };
+   * }
+   * ```
+   */
+  'mediaType'?: ContextExtensionFunction<'mediaType'>;
+  /** Encoding extensions
+   * 
+   * Available keys:
+   * - `contentType`
+   * - `style`
+   * - `explode`
+   * - `allowReserved`
+   * - `headers`
+   * 
+   * @example
+   * ```typescript
+   * 'encoding': (before, after) => {
+   *   return {
+   *     'x-my-extension': before('contentType'),
+   *     'x-my-config': after('headers')
+   *   };
+   * }
+   * ```
+   */
+  'encoding'?: ContextExtensionFunction<'encoding'>;
+  /** Header extensions
+   * 
+   * Available keys:
+   * - `description`
+   * - `required`
+   * - `deprecated`
+   * - `schema`
+   * - `content`
+   * - `type`
+   * - `format`
+   * - `style`
+   * - `explode`
+   * - `enum`
+   * - `default`
+   * - `example`
+   * - `examples`
+   * - `items`
+   * - `collectionFormat`
+   * - `maxItems`
+   * - `minItems`
+   * - `uniqueItems`
+   * - `minimum`
+   * - `multipleOf`
+   * - `exclusiveMinimum`
+   * - `maximum`
+   * - `exclusiveMaximum`
+   * - `pattern`
+   * - `minLength`
+   * - `maxLength`
+   * 
+   * @example
+   * ```typescript
+   * 'header': (before, after) => {
+   *   return {
+   *     'x-my-extension': before('description'),
+   *     'x-my-config': after('schema')
+   *   };
+   * }
+   * ```
+   */
+  'header'?: ContextExtensionFunction<'header'>;
+  /** Link extensions
+   * 
+   * Available keys:
+   * - `operationId`
+   * - `description`
+   * - `server`
+   * - `operationRef`
+   * - `parameters`
+   * - `requestBody`
+   * 
+   * @example
+   * ```typescript
+   * 'link': (before, after) => {
+   *   return {
+   *     'x-my-extension': before('operationId'),
+   *     'x-my-config': after('parameters')
+   *   };
+   * }
+   * ```
+   */
+  'link'?: ContextExtensionFunction<'link'>;
+  /** Example extensions
+   * 
+   * Available keys:
+   * - `summary`
+   * - `description`
+   * - `value`
+   * - `externalValue`
+   * 
+   * @example
+   * ```typescript
+   * 'example': (before, after) => {
+   *   return {
+   *     'x-my-extension': before('summary'),
+   *     'x-my-config': after('value')
+   *   };
+   * }
+   * ```
+   */
+  'example'?: ContextExtensionFunction<'example'>;
+  /** Discriminator extensions
+   * 
+   * Available keys:
+   * - `propertyName`
+   * - `mapping`
+   * 
+   * @example
+   * ```typescript
+   * 'discriminator': (before, after) => {
+   *   return {
+   *     'x-my-extension': before('propertyName'),
+   *     'x-my-config': after('mapping')
+   *   };
+   * }
+   * ```
+   */
+  'discriminator'?: ContextExtensionFunction<'discriminator'>;
+  /** XML extensions
+   * 
+   * Available keys:
+   * - `name`
+   * - `namespace`
+   * - `prefix`
+   * - `attribute`
+   * - `wrapped`
+   * 
+   * @example
+   * ```typescript
+   * 'xml': (before, after) => {
+   *   return {
+   *     'x-my-extension': before('name'),
+   *     'x-my-config': after('namespace')
+   *   };
+   * }
+   * ```
+   */
+  'xml'?: ContextExtensionFunction<'xml'>;
+  /** Contact extensions
+   * 
+   * Available keys:
+   * - `name`
+   * - `email`
+   * - `url`
+   * 
+   * @example
+   * ```typescript
+   * 'contact': (before, after) => {
+   *   return {
+   *     'x-my-extension': before('name'),
+   *     'x-my-config': after('email')
+   *   };
+   * }
+   * ```
+   */
+  'contact'?: ContextExtensionFunction<'contact'>;
+  /** License extensions
+   * 
+   * Available keys:
+   * - `name`
+   * - `identifier`
+   * - `url`
+   * 
+   * @example
+   * ```typescript
+   * 'license': (before, after) => {
+   *   return {
+   *     'x-my-extension': before('name'),
+   *     'x-my-config': after('identifier')
+   *   };
+   * }
+   * ```
+   */
+  'license'?: ContextExtensionFunction<'license'>;
+  /** OAuth flow extensions
+   * 
+   * Available keys:
+   * - `authorizationUrl`
+   * - `tokenUrl`
+   * - `refreshUrl`
+   * - `scopes`
+   * 
+   * @example
+   * ```typescript
+   * 'oauthFlow': (before, after) => {
+   *   return {
+   *     'x-my-extension': before('authorizationUrl'),
+   *     'x-my-config': after('tokenUrl')
+   *   };
+   * }
+   * ```
+   */
+  'oauthFlow'?: ContextExtensionFunction<'oauthFlow'>;
+  /** Server variable extensions
+   * 
+   * Available keys:
+   * - `description`
+   * - `default`
+   * - `enum`
+   * 
+   * @example
+   * ```typescript
+   * 'serverVariable': (before, after) => {
+   *   return {
+   *     'x-my-extension': before('description'),
+   *     'x-my-config': after('default')
+   *   };
+   * }
+   * ```
+   */
+  'serverVariable'?: ContextExtensionFunction<'serverVariable'>;
 }
 
 /**
@@ -609,6 +919,7 @@ export function createPositionHelpers<T extends keyof typeof KeyMap>(context: T)
 export const KeyMap = {
   'top-level': RootKeys,
   'info': InfoKeys,
+  'components': ComponentsKeys,
   'operation': OperationKeys,
   'parameter': ParameterKeys,
   'schema': SchemaKeys,
@@ -618,6 +929,19 @@ export const KeyMap = {
   'tag': TagKeys,
   'externalDocs': ExternalDocsKeys,
   'webhook': WebhookKeys,
+  'pathItem': PathItemKeys,
+  'requestBody': RequestBodyKeys,
+  'mediaType': MediaTypeKeys,
+  'encoding': EncodingKeys,
+  'header': HeaderKeys,
+  'link': LinkKeys,
+  'example': ExampleKeys,
+  'discriminator': DiscriminatorKeys,
+  'xml': XMLKeys,
+  'contact': ContactKeys,
+  'license': LicenseKeys,
+  'oauthFlow': OAuthFlowKeys,
+  'serverVariable': ServerVariableKeys,
   'definitions': SchemaKeys,
   'securityDefinitions': SecuritySchemeKeys,
 }

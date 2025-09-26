@@ -1,46 +1,43 @@
-import { SupportLanguage, Parser, Printer } from 'prettier';
-import type { Plugin } from 'prettier';
 import * as yaml from 'js-yaml';
+import type{ AstPath, Doc, Parser, ParserOptions, Printer, SupportLanguage } from 'prettier';
 import { getVendorExtensions } from './extensions/vendor-loader.js';
 
+export type PrintFn = (path: AstPath) => Doc;
+
 import {
-  RootKeys,
-  InfoKeys,
-  ContactKeys,
-  LicenseKeys,
-  ComponentsKeys,
-  OperationKeys,
-  ParameterKeys,
-  SchemaKeys,
-  ResponseKeys,
-  SecuritySchemeKeys,
-  OAuthFlowKeys,
-  ServerKeys,
-  ServerVariableKeys,
-  TagKeys,
-  ExternalDocsKeys,
-  WebhookKeys,
-  PathItemKeys,
-  RequestBodyKeys,
-  MediaTypeKeys,
-  EncodingKeys,
-  HeaderKeys,
-  LinkKeys,
-  ExampleKeys,
-  DiscriminatorKeys,
-  XMLKeys,
+    ComponentsKeys,
+    ContactKeys,
+    DiscriminatorKeys,
+    EncodingKeys,
+    ExampleKeys,
+    ExternalDocsKeys,
+    HeaderKeys,
+    InfoKeys,
+    LicenseKeys,
+    LinkKeys,
+    MediaTypeKeys,
+    OAuthFlowKeys,
+    OperationKeys,
+    ParameterKeys,
+    PathItemKeys,
+    RequestBodyKeys,
+    ResponseKeys,
+    RootKeys,
+    SchemaKeys,
+    SecuritySchemeKeys,
+    ServerKeys,
+    ServerVariableKeys,
+    TagKeys,
+    WebhookKeys,
+    XMLKeys,
 } from './keys.js';
 
 // Type definitions for better type safety
 interface OpenAPINode {
-    type: 'openapi';
+    isOpenAPI: boolean;
     content: any;
     originalText: string;
     format: 'json' | 'yaml';
-}
-
-interface PrettierPath {
-    getValue(): OpenAPINode;
 }
 
 interface OpenAPIPluginOptions {
@@ -59,18 +56,22 @@ const vendorExtensions = getVendorExtensions();
  * Unified parser that can handle both JSON and YAML OpenAPI files
  */
 function parseOpenAPIFile(text: string, options?: any): OpenAPINode {
-    // Try to detect the format based on file extension or content
-    const filePath = options?.filepath || '';
-    const isYamlFile = filePath.endsWith('.yaml') || filePath.endsWith('.yml');
-    const isJsonFile = filePath.endsWith('.json');
-    
-    // If we can't determine from extension, try to detect from content
-    let format: 'json' | 'yaml' = 'json'; // default to JSON
-    if (isYamlFile) {
-        format = 'yaml';
-    } else if (isJsonFile) {
-        format = 'json';
-    } else {
+    console.debug('parseOpenAPIFile', text, options);
+
+    let format: 'json' | 'yaml' | undefined;
+
+    if (options?.filepath) {
+        switch (true) {
+            case options?.filepath.endsWith('.yaml') || options?.filepath.endsWith('.yml'):
+                format = 'yaml';
+                break;
+            case options?.filepath.endsWith('.json'):
+                format = 'json';
+                break;
+        }
+    }
+
+    if (!format) {
         // Try to detect format from content
         const trimmedText = text.trim();
         if (trimmedText.startsWith('{') || trimmedText.startsWith('[')) {
@@ -79,35 +80,61 @@ function parseOpenAPIFile(text: string, options?: any): OpenAPINode {
             format = 'yaml';
         }
     }
-    
-    try {
-        let parsed: any;
-        
-        if (format === 'json') {
-            parsed = JSON.parse(text);
-        } else {
+
+    let parsed: any;
+
+    switch (format) {
+        case 'yaml':
+            try {
             parsed = yaml.load(text, {
                 schema: yaml.DEFAULT_SCHEMA,
                 onWarning: (warning) => {
                     // Handle YAML warnings if needed
                     console.warn('YAML parsing warning:', warning);
-                }
-            });
-        }
-        
-        // Check if this is an OpenAPI file
-        if (!isOpenAPIFile(parsed, filePath)) {
-            throw new Error('Not an OpenAPI file');
-        }
-        
+                    }
+                });
+            } catch (error) {
+                throw new Error(`Failed to parse OpenAPI YAML: ${error}`);
+            }
+            break;
+        case 'json':
+            try {
+                parsed = JSON.parse(text);
+            } catch (error) {
+                throw new Error(`Failed to parse OpenAPI JSON: ${error}`);
+            }
+            break;
+    }
+
+    let isOpenAPI: boolean;
+
+    try {
+        isOpenAPI = isOpenAPIFile(parsed, options?.filepath);
+    } catch (error) {
         return {
-            type: 'openapi',
+            isOpenAPI: false,
             content: parsed,
             originalText: text,
             format: format,
-        };
-    } catch (error) {
-        throw new Error(`Failed to parse OpenAPI ${format.toUpperCase()}: ${error}`);
+        }
+    }
+
+    switch (isOpenAPI) {
+        case true:
+            return {
+                isOpenAPI: true,
+                content: parsed,
+                originalText: text,
+                format: format,
+            }
+        case false:
+        default:
+            return {
+                isOpenAPI: false,
+                content: parsed,
+                originalText: text,
+                format: format,
+            }
     }
 }
 
@@ -132,17 +159,17 @@ function isOpenAPIFile(content: any, filePath?: string): boolean {
     // Only accept files in OpenAPI-related directories
     if (filePath) {
         const path = filePath.toLowerCase();
-        
+
         // Check for component directory patterns
-        if (path.includes('/components/') || 
-            path.includes('/schemas/') || 
-            path.includes('/parameters/') || 
-            path.includes('/responses/') || 
-            path.includes('/requestbodies/') || 
-            path.includes('/headers/') || 
-            path.includes('/examples/') || 
-            path.includes('/securityschemes/') || 
-            path.includes('/links/') || 
+        if (path.includes('/components/') ||
+            path.includes('/schemas/') ||
+            path.includes('/parameters/') ||
+            path.includes('/responses/') ||
+            path.includes('/requestbodies/') ||
+            path.includes('/headers/') ||
+            path.includes('/examples/') ||
+            path.includes('/securityschemes/') ||
+            path.includes('/links/') ||
             path.includes('/callbacks/') ||
             path.includes('/webhooks/') ||
             path.includes('/paths/')) {
@@ -204,11 +231,11 @@ function isOpenAPIFile(content: any, filePath?: string): boolean {
     // Additional strict check: reject objects that look like generic data
     // If an object only has simple properties like name, age, etc. without any OpenAPI structure, reject it
     const keys = Object.keys(content);
-    const hasOnlyGenericProperties = keys.every(key => 
+    const hasOnlyGenericProperties = keys.every(key =>
         !key.startsWith('x-') && // Not a custom extension
         !['openapi', 'swagger', 'info', 'paths', 'components', 'definitions', 'parameters', 'responses', 'securityDefinitions', 'tags', 'servers', 'webhooks'].includes(key)
     );
-    
+
     if (hasOnlyGenericProperties) {
         return false;
     }
@@ -229,36 +256,40 @@ function isPathObject(obj: any): boolean {
     return Object.keys(obj).some(key => httpMethods.includes(key.toLowerCase()));
 }
 
-const plugin: Plugin = {
-    languages: [
-        {
-            name: 'openapi',
-            extensions: [
-                // Accepting all JSON and YAML files so that component files used by $ref work
-                '.json', '.yaml', '.yml'
-            ],
-            parsers: ['openapi-parser'],
+export const languages: Partial<SupportLanguage>[] = [
+    {
+        name: 'openapi',
+        extensions: [
+            // Accepting all JSON and YAML files so that component files used by $ref work
+            '.json', '.yaml', '.yml'
+        ],
+        parsers: ['openapi-parser'],
+    },
+];
+
+export const parsers: Record<string, Parser> = {
+    'openapi-parser': {
+        parse: (text: string, options?: any): OpenAPINode => {
+            return parseOpenAPIFile(text, options);
         },
-    ],
-    parsers: {
-        'openapi-parser': {
-            parse: (text: string, options?: any): OpenAPINode => {
-                return parseOpenAPIFile(text, options);
-            },
-            astFormat: 'openapi-ast',
-            locStart: (node: OpenAPINode) => 0,
-            locEnd: (node: OpenAPINode) => node.originalText?.length || 0,
+        astFormat: 'openapi-ast',
+        locStart: (node: OpenAPINode) => 0,
+        locEnd: (node: OpenAPINode) => node.originalText?.length || 0,
+    },
+}
+
+export const printers: Record<string, Printer> = {
+    'openapi-ast': {
+        print: (path: AstPath, options: ParserOptions, print: PrintFn): string => {
+            const node = path.getNode();
+            if (!node.isOpenAPI || node.isOpenAPI === false) {
+                // Return original text unchanged
+                return options.originalText;
+            }
+            return formatOpenAPI(node.content, node.format, options);
         },
     },
-    printers: {
-        'openapi-ast': {
-            print: (path: PrettierPath, options?: any, print?: any, ...rest: any[]): string => {
-                const node = path.getValue();
-                return formatOpenAPI(node.content, node.format, options);
-            },
-        },
-    },
-};
+}
 
 /**
  * Unified formatter that outputs in the detected format
@@ -267,27 +298,19 @@ function formatOpenAPI(content: any, format: 'json' | 'yaml', options?: OpenAPIP
     // Sort keys for better organization
     const sortedContent = sortOpenAPIKeys(content);
 
-    if (format === 'json') {
-        // Format with proper indentation
-        return JSON.stringify(sortedContent, null, options?.tabWidth || 2);
-    } else {
-        // Format YAML with proper indentation and line breaks
-        return yaml.dump(sortedContent, {
-            indent: options?.tabWidth || 2,
-            lineWidth: options?.printWidth || 80,
-            noRefs: true,
-            quotingType: '"',
-            forceQuotes: false,
-        });
+    switch (format) {
+        case 'json':
+            return JSON.stringify(sortedContent, null, options?.tabWidth || 2);
+        case 'yaml':
+            // Format YAML with proper indentation and line breaks
+            return yaml.dump(sortedContent, {
+                indent: options?.tabWidth || 2,
+                lineWidth: options?.printWidth || 80,
+                noRefs: true,
+                quotingType: '"',
+                forceQuotes: false,
+            });
     }
-}
-
-function formatOpenAPIJSON(content: any, options?: OpenAPIPluginOptions): string {
-    return formatOpenAPI(content, 'json', options);
-}
-
-function formatOpenAPIYAML(content: any, options?: OpenAPIPluginOptions): string {
-    return formatOpenAPI(content, 'yaml', options);
 }
 
 function sortOpenAPIKeys(obj: any): any {
@@ -316,7 +339,7 @@ function sortOpenAPIKeysEnhanced(obj: any, path: string = ''): any {
     if (typeof obj !== 'object' || obj === null) {
         return obj;
     }
-    
+
     // Handle arrays by recursively sorting each element
     if (Array.isArray(obj)) {
         return obj.map((item, index) => sortOpenAPIKeysEnhanced(item, `${path}[${index}]`));
@@ -389,11 +412,11 @@ function isSchemaObject(obj: any): boolean {
     if (!obj || typeof obj !== 'object') {
         return false;
     }
-    
+
     // Check for JSON Schema keywords - be very strict
     const hasSchemaKeywords = '$ref' in obj || 'allOf' in obj || 'oneOf' in obj || 'anyOf' in obj || 'not' in obj;
     const hasValidType = 'type' in obj && obj.type && ['object', 'array', 'string', 'number', 'integer', 'boolean', 'null'].includes(obj.type);
-    
+
     // Only return true if we have clear schema indicators
     // Must have either schema keywords OR valid type with schema properties
     // Also require additional schema-specific properties to be more strict
@@ -414,8 +437,8 @@ function isServerObject(obj: any): boolean {
 }
 
 function isTagObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && 'name' in obj && typeof obj.name === 'string' && 
-           (Object.keys(obj).length === 1 || // Only name
+    return obj && typeof obj === 'object' && 'name' in obj && typeof obj.name === 'string' &&
+        (Object.keys(obj).length === 1 || // Only name
             'description' in obj || // name + description
             'externalDocs' in obj); // name + externalDocs
 }
@@ -546,7 +569,7 @@ function getContextKey(path: string, obj: any): string {
     if (path === 'webhooks') return 'webhook';
     if (path === 'definitions') return 'definitions';
     if (path === 'securityDefinitions') return 'securityDefinitions';
-    
+
     // Check if this is a path operation (e.g., "paths./users.get")
     if (path.includes('.') && path.split('.').length >= 3) {
         const pathParts = path.split('.');
@@ -649,5 +672,3 @@ function getStandardKeysForContext(contextKey: string): readonly string[] {
         default: return RootKeys;
     }
 }
-
-export default plugin;
