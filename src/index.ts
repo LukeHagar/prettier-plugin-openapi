@@ -56,8 +56,6 @@ const vendorExtensions = getVendorExtensions();
  * Unified parser that can handle both JSON and YAML OpenAPI files
  */
 function parseOpenAPIFile(text: string, options?: any): OpenAPINode {
-    console.debug('parseOpenAPIFile', text, options);
-
     let format: 'json' | 'yaml' | undefined;
 
     if (options?.filepath) {
