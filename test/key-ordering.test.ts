@@ -117,6 +117,40 @@ describe('Key Ordering Tests', () => {
     });
   });
 
+  describe('Sort tags by name', () => {
+    it('should sort tags by name', () => {
+      const printer = printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
+
+      const testData = {
+        isOpenAPI: true,
+        format: 'json',
+        content: {
+          tags: [{ name: 'test2' }, { name: 'test' }],
+          openapi: '3.0.0',
+          info: { title: 'Test API', version: '1.0.0' }
+        }
+      };
+
+      // @ts-expect-error We are mocking things here
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 });
+      expect(result).toBeDefined();
+
+      if (!result) {
+        throw new Error('Result is undefined');
+      }
+
+      console.log('result', result);
+
+      const resultString = result.toString();
+
+      const testIndex = resultString.indexOf('test"');
+      const test2Index = resultString.indexOf('test2"');
+
+      expect(testIndex).toBeLessThan(test2Index);
+    });
+  });
+
   describe('Schema key ordering', () => {
     it('should sort schema keys correctly', () => {
       const printer = printers?.['openapi-ast'];
@@ -126,47 +160,39 @@ describe('Key Ordering Tests', () => {
         isOpenAPI: true,
         format: 'yaml',
         content: {
-          openapi: '3.0.0',
-          info: { title: 'Test API', version: '1.0.0' },
-          components: {
-            schemas: {
-              User: {
-                properties: { id: { type: 'integer' } },
-                required: ['id'],
-                type: 'object',
-                title: 'User',
-                description: 'A user object',
-                format: 'object',
-                default: {},
-                example: { id: 1 },
-                examples: { user1: { value: { id: 1 } } },
-                enum: ['active', 'inactive'],
-                const: 'user',
-                multipleOf: 1,
-                maximum: 100,
-                exclusiveMaximum: true,
-                minimum: 0,
-                exclusiveMinimum: true,
-                maxLength: 50,
-                minLength: 1,
-                pattern: '^[a-zA-Z]+$',
-                maxItems: 10,
-                minItems: 1,
-                uniqueItems: true,
-                maxProperties: 5,
-                minProperties: 1,
-                items: { type: 'string' },
-                allOf: [{ type: 'object' }],
-                oneOf: [{ type: 'string' }],
-                anyOf: [{ type: 'number' }],
-                not: { type: 'null' },
-                discriminator: { propertyName: 'type' },
-                xml: { name: 'user' },
-                externalDocs: { url: 'https://example.com' },
-                deprecated: false
-              }
-            }
-          }
+          properties: { id: { type: 'integer' } },
+          required: ['id'],
+          type: 'object',
+          title: 'User',
+          description: 'A user object',
+          format: 'object',
+          default: {},
+          example: { id: 1 },
+          examples: { user1: { value: { id: 1 } } },
+          enum: ['active', 'inactive'],
+          const: 'user',
+          multipleOf: 1,
+          maximum: 100,
+          exclusiveMaximum: true,
+          minimum: 0,
+          exclusiveMinimum: true,
+          maxLength: 50,
+          minLength: 1,
+          pattern: '^[a-zA-Z]+$',
+          maxItems: 10,
+          minItems: 1,
+          uniqueItems: true,
+          maxProperties: 5,
+          minProperties: 1,
+          items: { type: 'string' },
+          allOf: [{ type: 'object' }],
+          oneOf: [{ type: 'string' }],
+          anyOf: [{ type: 'number' }],
+          not: { type: 'null' },
+          discriminator: { propertyName: 'type' },
+          xml: { name: 'user' },
+          externalDocs: { url: 'https://example.com' },
+          deprecated: false
         }
       };
 

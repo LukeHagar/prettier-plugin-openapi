@@ -81,10 +81,6 @@ function parseOpenAPIFile(text: string, options?: any): OpenAPINode {
             case 'yaml':
                 parsed = yaml.load(text, {
                     schema: yaml.DEFAULT_SCHEMA,
-                    onWarning: (warning) => {
-                        // Handle YAML warnings if needed
-                        console.warn('YAML parsing warning:', warning);
-                    }
                 });
                 break;
             case 'json':
@@ -297,16 +293,17 @@ function formatOpenAPI(content: any, format: 'json' | 'yaml', options?: OpenAPIP
 }
 
 function sortOpenAPIKeys(obj: any): any {
-    if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
-        return obj;
-    }
 
-    // Get vendor extensions for top-level
-    const topLevelExtensions = vendorExtensions['top-level'] || {};
+    // Determine what class of OpebAPI schema this is
+    const contextKey = getContextKey("", obj);
+
+    const standardKeys = getStandardKeysForContext(contextKey);
+    const customExtensions = vendorExtensions[contextKey] || {};
+
 
     const sortedKeys = Object.keys(obj).sort((a, b) => {
         // Use the unified sorting function
-        return sortKeys(a, b, RootKeys, topLevelExtensions);
+        return sortKeys(a, b, standardKeys, customExtensions);
     });
 
     const sortedObj: any = {};
@@ -325,7 +322,17 @@ function sortOpenAPIKeysEnhanced(obj: any, path: string = ''): any {
 
     // Handle arrays by recursively sorting each element
     if (Array.isArray(obj)) {
-        return obj.map((item, index) => sortOpenAPIKeysEnhanced(item, `${path}[${index}]`));
+        const sortedObjs = []
+
+        for (let i = 0; i < obj.length; i++) {
+            sortedObjs.push(sortOpenAPIKeysEnhanced(obj[i], `${path}[${i}]`));
+        }
+
+        if (path === 'tags') {
+            return sortedObjs.sort((a, b) => sortTags(a, b));
+        }
+
+        return sortedObjs;
     }
 
     const contextKey = getContextKey(path, obj);
@@ -333,18 +340,14 @@ function sortOpenAPIKeysEnhanced(obj: any, path: string = ''): any {
     const customExtensions = vendorExtensions[contextKey] || {};
 
     const sortedKeys = Object.keys(obj).sort((a, b) => {
-        // Special handling for paths (sort by path pattern)
-        if (path === 'paths') {
-            return sortPathKeys(a, b);
+        switch (path) {
+            case 'paths':
+                return sortPathKeys(a, b);
+            case 'responses':
+                return sortResponseCodes(a, b);
+            default:
+                return sortKeys(a, b, standardKeys, customExtensions);
         }
-
-        // Special handling for response codes (sort numerically)
-        if (path === 'responses') {
-            return sortResponseCodes(a, b);
-        }
-
-        // Use the unified sorting function for all other cases
-        return sortKeys(a, b, standardKeys, customExtensions);
     });
 
     const sortedObj: any = {};
@@ -366,6 +369,15 @@ function sortPathKeys(a: string, b: string): number {
     }
 
     return a.localeCompare(b);
+}
+
+type Tag = {
+    name: string;
+}
+
+function sortTags(a: Tag, b: Tag): number {
+    // Sort tags by name
+    return a.name.localeCompare(b.name);
 }
 
 function sortResponseCodes(a: string, b: string): number {
