@@ -1,5 +1,5 @@
 import * as yaml from 'js-yaml';
-import type{ AstPath, Doc, Parser, ParserOptions, Printer, SupportLanguage } from 'prettier';
+import type { AstPath, Doc, Parser, ParserOptions, Printer, SupportLanguage } from 'prettier';
 import { getVendorExtensions } from './extensions/vendor-loader.js';
 
 export type PrintFn = (path: AstPath) => Doc;
@@ -35,9 +35,8 @@ import {
 // Type definitions for better type safety
 interface OpenAPINode {
     isOpenAPI: boolean;
-    content: any;
-    originalText: string;
-    format: 'json' | 'yaml';
+    content?: any;
+    format?: 'json' | 'yaml';
 }
 
 interface OpenAPIPluginOptions {
@@ -47,10 +46,6 @@ interface OpenAPIPluginOptions {
 
 // Load vendor extensions
 const vendorExtensions = getVendorExtensions();
-
-// ============================================================================
-// UNIFIED PARSER FUNCTIONS
-// ============================================================================
 
 /**
  * Unified parser that can handle both JSON and YAML OpenAPI files
@@ -81,27 +76,25 @@ function parseOpenAPIFile(text: string, options?: any): OpenAPINode {
 
     let parsed: any;
 
-    switch (format) {
-        case 'yaml':
-            try {
-            parsed = yaml.load(text, {
-                schema: yaml.DEFAULT_SCHEMA,
-                onWarning: (warning) => {
-                    // Handle YAML warnings if needed
-                    console.warn('YAML parsing warning:', warning);
+    try {
+        switch (format) {
+            case 'yaml':
+                parsed = yaml.load(text, {
+                    schema: yaml.DEFAULT_SCHEMA,
+                    onWarning: (warning) => {
+                        // Handle YAML warnings if needed
+                        console.warn('YAML parsing warning:', warning);
                     }
                 });
-            } catch (error) {
-                throw new Error(`Failed to parse OpenAPI YAML: ${error}`);
-            }
-            break;
-        case 'json':
-            try {
+                break;
+            case 'json':
                 parsed = JSON.parse(text);
-            } catch (error) {
-                throw new Error(`Failed to parse OpenAPI JSON: ${error}`);
-            }
-            break;
+                break;
+        }
+    } catch (error) {
+        return {
+            isOpenAPI: false,
+        }
     }
 
     let isOpenAPI: boolean;
@@ -111,9 +104,6 @@ function parseOpenAPIFile(text: string, options?: any): OpenAPINode {
     } catch (error) {
         return {
             isOpenAPI: false,
-            content: parsed,
-            originalText: text,
-            format: format,
         }
     }
 
@@ -122,16 +112,11 @@ function parseOpenAPIFile(text: string, options?: any): OpenAPINode {
             return {
                 isOpenAPI: true,
                 content: parsed,
-                originalText: text,
                 format: format,
             }
         case false:
-        default:
             return {
                 isOpenAPI: false,
-                content: parsed,
-                originalText: text,
-                format: format,
             }
     }
 }
@@ -272,7 +257,7 @@ export const parsers: Record<string, Parser> = {
         },
         astFormat: 'openapi-ast',
         locStart: (node: OpenAPINode) => 0,
-        locEnd: (node: OpenAPINode) => node.originalText?.length || 0,
+        locEnd: (node: OpenAPINode) => node.content?.length || 0,
     },
 }
 

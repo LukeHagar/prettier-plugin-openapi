@@ -457,7 +457,10 @@ describe('Integration Tests', () => {
       const malformedJson = '{"openapi": "3.0.0", "info": {';
 
       // @ts-expect-error We are mocking things here
-      expect(() => parser?.parse(malformedJson, { filepath: 'test.json' })).toThrow();
+      const result = parser?.parse(malformedJson, { filepath: 'test.json' });
+
+      expect(result).toBeDefined();
+      expect(result?.isOpenAPI).toBeFalse();
     });
 
     it('should handle malformed YAML gracefully', () => {
@@ -467,7 +470,10 @@ describe('Integration Tests', () => {
       const malformedYaml = 'openapi: 3.0.0\ninfo:\n  title: Test\n  version: 1.0.0\n  invalid: [';
 
       // @ts-expect-error We are mocking things here
-      expect(() => parser?.parse(malformedYaml, { filepath: 'test.yaml' })).toThrow();
+      const result = parser?.parse(malformedYaml, { filepath: 'test.yaml' });
+
+      expect(result).toBeDefined();
+      expect(result?.isOpenAPI).toBeFalse();
     });
 
     it('should handle non-OpenAPI content', () => {
@@ -485,8 +491,6 @@ describe('Integration Tests', () => {
       const parsedData = parser?.parse(nonOpenAPI, { filepath: 'test.json' })
       expect(parsedData).toBeDefined();
       expect(parsedData?.isOpenAPI).toBeFalse();
-      expect(parsedData?.content).toBeDefined();
-      expect(parsedData?.content).toEqual(parsedJSON);
     });
   });
 
