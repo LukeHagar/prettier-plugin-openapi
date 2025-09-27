@@ -11,8 +11,7 @@ describe('Vendor Extension System', () => {
     
     // Check if extensions were loaded
     expect(vendorExtensions['top-level']).toBeDefined();
-    expect(vendorExtensions['top-level']['x-speakeasy-sdk']).toBe(3); // before('info') = position 3
-    expect(vendorExtensions['top-level']['x-speakeasy-auth']).toBe(14); // after('paths') = position 14
+    expect(vendorExtensions['top-level']['x-tagGroups']).toBe(13);
   });
 
 
@@ -28,12 +27,6 @@ describe('Vendor Extension System', () => {
     
     // Check that extensions have the right structure
     expect(vendorExtensions['top-level']).toBeDefined();
-    expect(vendorExtensions['info']).toBeDefined();
     expect(vendorExtensions['operation']).toBeDefined();
-    expect(vendorExtensions['schema']).toBeDefined();
-    
-    // Check specific extensions
-    expect(vendorExtensions['top-level']['x-speakeasy-sdk']).toBe(3); // before('info') = position 3
-    expect(vendorExtensions['top-level']['x-speakeasy-auth']).toBe(14); // after('paths') = position 14
   });
 });

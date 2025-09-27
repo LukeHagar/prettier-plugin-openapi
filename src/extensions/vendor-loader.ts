@@ -7,16 +7,14 @@
 import { before, after, type KeyMap, type VendorExtensions } from './index.js';
 
 // Import vendor extensions statically
+import { common } from './vendor/common.js';
 import { speakeasy } from './vendor/speakeasy.js';
-import { postman } from './vendor/postman.js';
-import { redoc } from './vendor/redoc.js';
 
 // Import vendor extensions statically
 const vendorModules = [
   // Update this list as new vendors are added
   speakeasy, 
-  postman, 
-  redoc
+common
 ];
 
 // Type for vendor module
