@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import {parsers, printers} from '../src/index';
+import { parsers, printers } from '../src/index';
 
 describe('Custom Extensions Support', () => {
   it('should handle custom extensions in top-level keys', () => {
@@ -110,7 +110,7 @@ describe('Custom Extensions Support', () => {
       }
     };
 
-// @ts-expect-error We are mocking things here so we don't need to pass a print function
+    // @ts-expect-error We are mocking things here so we don't need to pass a print function
     const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
     expect(result).toBeDefined();
     expect(result).toContain('x-custom-field');
@@ -175,7 +175,7 @@ describe('Custom Extensions Support', () => {
         }
       };
 
-    // @ts-expect-error We are mocking things here
+      // @ts-expect-error We are mocking things here
       const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
@@ -184,7 +184,7 @@ describe('Custom Extensions Support', () => {
       }
 
       const resultString = result.toString();
-      
+
       // Custom extensions should come after standard keys
       const openapiIndex = resultString.indexOf('openapi');
       const infoIndex = resultString.indexOf('info');
@@ -217,7 +217,7 @@ describe('Custom Extensions Support', () => {
         }
       };
 
-    // @ts-expect-error We are mocking things here
+      // @ts-expect-error We are mocking things here
       const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
@@ -263,7 +263,7 @@ describe('Custom Extensions Support', () => {
         }
       };
 
-    // @ts-expect-error We are mocking things here
+      // @ts-expect-error We are mocking things here
       const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
@@ -272,7 +272,7 @@ describe('Custom Extensions Support', () => {
       }
 
       const resultString = result.toString();
-      
+
       const summaryIndex = resultString.indexOf('summary');
       const responsesIndex = resultString.indexOf('responses');
       const xRateLimitIndex = resultString.indexOf('x-rate-limit');
@@ -306,7 +306,7 @@ describe('Custom Extensions Support', () => {
         }
       };
 
-    // @ts-expect-error We are mocking things here
+      // @ts-expect-error We are mocking things here
       const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
@@ -345,7 +345,7 @@ describe('Custom Extensions Support', () => {
         }
       };
 
-    // @ts-expect-error We are mocking things here
+      // @ts-expect-error We are mocking things here
       const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
@@ -371,6 +371,45 @@ describe('Custom Extensions Support', () => {
       expect(anotherUnknownIndex).toBeLessThan(unknownFieldIndex);
     });
 
+    it('should handle specific extension placement', () => {
+      const printer = printers?.['openapi-ast'];
+      expect(printer).toBeDefined();
+
+      const testData = {
+        isOpenAPI: true,
+        format: 'yaml',
+        content: {
+          'info': { 'title': 'Test API', 'version': '1.0.0' },
+          'openapi': '3.0.0',
+          'x-tagGroups': 'value',
+          'tags': 'value',
+          'paths': {},
+          'x-metadata': { 'custom': 'data' },
+        }
+      };
+
+      // @ts-expect-error We are mocking things here
+      const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
+      expect(result).toBeDefined();
+
+      if (!result) {
+        throw new Error('Result is undefined');
+      }
+
+      const resultString = result.toString();
+
+      // Standard keys first, then custom extensions, then unknown keys alphabetically
+      const openapiIndex = resultString.indexOf('openapi');
+      const infoIndex = resultString.indexOf('info');
+      const pathsIndex = resultString.indexOf('paths');
+      const xTagGroupsIndex = resultString.indexOf('x-tagGroups:');
+      const tagsIndex = resultString.indexOf('tags:');
+
+      expect(openapiIndex).toBeLessThan(infoIndex);
+      expect(infoIndex).toBeLessThan(pathsIndex);
+      expect(tagsIndex).toBeLessThan(xTagGroupsIndex);
+    });
+
     it('should handle mixed custom extensions and unknown keys', () => {
       const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();
@@ -389,7 +428,7 @@ describe('Custom Extensions Support', () => {
         }
       };
 
-    // @ts-expect-error We are mocking things here
+      // @ts-expect-error We are mocking things here
       const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
       expect(result).toBeDefined();
 
@@ -398,7 +437,7 @@ describe('Custom Extensions Support', () => {
       }
 
       const resultString = result.toString();
-          
+
       // Standard keys first, then custom extensions, then unknown keys alphabetically
       const openapiIndex = resultString.indexOf('openapi');
       const infoIndex = resultString.indexOf('info');

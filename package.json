@@ -38,7 +38,7 @@
   "scripts": {
     "build": "rollup -c && tsc --emitDeclarationOnly",
     "dev": "rollup -c --watch",
-    "pretest": "rollup -c",
+    "pretest": "bun run build",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "test:watch": "bun test --watch",

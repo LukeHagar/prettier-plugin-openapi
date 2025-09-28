@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'bun:test';
-import plugin from '../dist/index.js';
+import { parsers, printers } from '../src/index.js';
 
 describe('Prettier OpenAPI Plugin', () => {
   it('should format OpenAPI JSON files', () => {
-    const parser = plugin.parsers?.['openapi-parser'];
-    const printer = plugin.printers?.['openapi-ast'];
-    
+    const parser = parsers?.['openapi-parser'];
+    const printer = printers?.['openapi-ast'];
+
     expect(parser).toBeDefined();
     expect(printer).toBeDefined();
 
@@ -39,7 +39,7 @@ describe('Prettier OpenAPI Plugin', () => {
     // Format the parsed content
     // @ts-expect-error We are mocking things here
     const result = printer?.print({ getNode: () => parsed }, { tabWidth: 2 }, () => '');
-    
+
     expect(result).toBeDefined();
     expect(result).toContain('"openapi"');
     expect(result).toContain('"info"');
@@ -53,15 +53,15 @@ describe('Prettier OpenAPI Plugin', () => {
     const openapiIndex = result.toString().indexOf('"openapi"');
     const infoIndex = result.toString().indexOf('"info"');
     const pathsIndex = result.toString().indexOf('"paths"');
-    
+
     expect(openapiIndex).toBeLessThan(infoIndex);
     expect(infoIndex).toBeLessThan(pathsIndex);
   });
 
   it('should format OpenAPI YAML files', () => {
-    const parser = plugin.parsers?.['openapi-parser'];
-    const printer = plugin.printers?.['openapi-ast'];
-    
+    const parser = parsers?.['openapi-parser'];
+    const printer = printers?.['openapi-ast'];
+
     expect(parser).toBeDefined();
     expect(printer).toBeDefined();
 
@@ -87,12 +87,12 @@ openapi: 3.0.0`;
     // Format the parsed content
     // @ts-expect-error We are mocking things here
     const result = printer?.print({ getNode: () => parsed }, { tabWidth: 2 }, () => '');
-    
+
     expect(result).toBeDefined();
     expect(result).toContain('openapi:');
     expect(result).toContain('info:');
     expect(result).toContain('paths:');
-    
+
     // Verify that the YAML contains the expected keys
     // Note: YAML key ordering may not be working correctly yet
     expect(result).toContain('openapi:');
@@ -102,21 +102,21 @@ openapi: 3.0.0`;
     if (!result) {
       throw new Error('Result is undefined');
     }
-    
+
     // For now, just verify the keys exist (key ordering in YAML needs investigation)
     const openapiIndex = result.toString().indexOf('openapi:');
     const infoIndex = result.toString().indexOf('info:');
     const pathsIndex = result.toString().indexOf('paths:');
-    
+
     expect(openapiIndex).toBeGreaterThanOrEqual(0);
     expect(infoIndex).toBeGreaterThanOrEqual(0);
     expect(pathsIndex).toBeGreaterThanOrEqual(0);
   });
 
   it('should format Swagger 2.0 JSON files', () => {
-    const parser = plugin.parsers?.['openapi-parser'];
-    const printer = plugin.printers?.['openapi-ast'];
-    
+    const parser = parsers?.['openapi-parser'];
+    const printer = printers?.['openapi-ast'];
+
     expect(parser).toBeDefined();
     expect(printer).toBeDefined();
 
@@ -155,7 +155,7 @@ openapi: 3.0.0`;
     // Format the parsed content
     // @ts-expect-error We are mocking things here
     const result = printer?.print({ getNode: () => parsed }, { tabWidth: 2 }, () => '');
-    
+
     expect(result).toBeDefined();
     expect(result).toContain('"swagger"');
     expect(result).toContain('"info"');
@@ -165,13 +165,13 @@ openapi: 3.0.0`;
     if (!result) {
       throw new Error('Result is undefined');
     }
-    
+
     // Verify correct Swagger 2.0 key ordering
     const swaggerIndex = result.toString().indexOf('"swagger"');
     const infoIndex = result.toString().indexOf('"info"');
     const pathsIndex = result.toString().indexOf('"paths"');
     const definitionsIndex = result.toString().indexOf('"definitions"');
-    
+
     expect(swaggerIndex).toBeLessThan(infoIndex);
     expect(infoIndex).toBeLessThan(pathsIndex);
     expect(pathsIndex).toBeLessThan(definitionsIndex);
@@ -181,9 +181,9 @@ openapi: 3.0.0`;
 describe('Key Ordering Tests', () => {
   describe('Top-level key ordering', () => {
     it('should sort OpenAPI 3.0+ keys correctly', () => {
-      const parser = plugin.parsers?.['openapi-parser'];
-      const printer = plugin.printers?.['openapi-ast'];
-      
+      const parser = parsers?.['openapi-parser'];
+      const printer = printers?.['openapi-ast'];
+
       expect(parser).toBeDefined();
       expect(printer).toBeDefined();
 
@@ -233,9 +233,9 @@ describe('Key Ordering Tests', () => {
     });
 
     it('should sort Swagger 2.0 keys correctly', () => {
-      const parser = plugin.parsers?.['openapi-parser'];
-      const printer = plugin.printers?.['openapi-ast'];
-      
+      const parser = parsers?.['openapi-parser'];
+      const printer = printers?.['openapi-ast'];
+
       expect(parser).toBeDefined();
       expect(printer).toBeDefined();
 

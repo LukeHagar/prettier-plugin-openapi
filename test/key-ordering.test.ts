@@ -140,8 +140,6 @@ describe('Key Ordering Tests', () => {
         throw new Error('Result is undefined');
       }
 
-      console.log('result', result);
-
       const resultString = result.toString();
 
       const testIndex = resultString.indexOf('test"');
@@ -198,7 +196,6 @@ describe('Key Ordering Tests', () => {
 
       // @ts-expect-error We are mocking things here so we don't need to pass a print function
       const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 });
-      console.log('result', result);
       expect(result).toBeDefined();
 
       if (!result) {

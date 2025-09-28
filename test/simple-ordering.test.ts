@@ -23,7 +23,7 @@ describe('Simple Key Ordering Tests', () => {
     // @ts-expect-error We are mocking things here
     const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
     expect(result).toBeDefined();
-    
+
     if (!result) {
       throw new Error('Result is undefined');
     }
@@ -86,7 +86,7 @@ describe('Simple Key Ordering Tests', () => {
     }
 
     const resultString = result.toString();
-    
+
     // Check that operation keys appear in the correct order
     const summaryIndex = resultString.indexOf('summary');
     const operationIdIndex = resultString.indexOf('operationId');
@@ -141,7 +141,7 @@ describe('Simple Key Ordering Tests', () => {
     }
 
     const resultString = result.toString();
-    
+
     // Check that info keys appear in the correct order
     const titleIndex = resultString.indexOf('title');
     const versionIndex = resultString.indexOf('version');
@@ -175,13 +175,12 @@ describe('Simple Key Ordering Tests', () => {
 
     // @ts-expect-error We are mocking things here
     const result = printer?.print({ getNode: () => testData }, { tabWidth: 2 }, () => '');
-    console.log('result', result);
     expect(result).toBeDefined();
 
     if (!result) {
       throw new Error('Result is undefined');
     }
-    
+
     // Custom extensions should come after standard keys
     const openapiIndex = result.toString().indexOf('openapi');
     const infoIndex = result.toString().indexOf('info');

@@ -300,10 +300,9 @@ function sortOpenAPIKeys(obj: any): any {
     const standardKeys = getStandardKeysForContext(contextKey);
     const customExtensions = vendorExtensions[contextKey] || {};
 
-
     const sortedKeys = Object.keys(obj).sort((a, b) => {
         // Use the unified sorting function
-        return sortKeys(a, b, standardKeys, customExtensions);
+        return sortKeys(a, b, standardKeys, customExtensions);;
     });
 
     const sortedObj: any = {};
@@ -515,39 +514,52 @@ function sortKeys(a: string, b: string, standardKeys: readonly string[], customE
     const aCustomPos = customExtensions[a];
     const bCustomPos = customExtensions[b];
 
-    // Handle custom extensions first
+    // Get standard key positions
+    const aStandardIndex = standardKeys.indexOf(a);
+    const bStandardIndex = standardKeys.indexOf(b);
+
+    // Both are custom extensions
     if (aCustomPos !== undefined && bCustomPos !== undefined) {
         return aCustomPos - bCustomPos;
     }
 
-    if (aCustomPos !== undefined) {
-        if (aCustomPos < standardKeys.length) {
-            return -1; // Custom key should come before standard keys
+    // Both are standard keys
+    if (aStandardIndex !== -1 && bStandardIndex !== -1) {
+        return aStandardIndex - bStandardIndex;
+    }
+
+    // One is custom, one is standard
+    if (aCustomPos !== undefined && bStandardIndex !== -1) {
+        // Custom key should be positioned relative to standard keys
+        if (aCustomPos < bStandardIndex) {
+            return -1; // Custom key comes before this standard key
+        } else if (aCustomPos > bStandardIndex) {
+            return 1; // Custom key comes after this standard key
+        } else {
+            return -1; // Custom key comes before standard key at same position
         }
     }
 
-    if (bCustomPos !== undefined) {
-        if (bCustomPos < standardKeys.length) {
-            return 1; // Custom key should come before standard keys
+    if (bCustomPos !== undefined && aStandardIndex !== -1) {
+        // Custom key should be positioned relative to standard keys
+        if (bCustomPos < aStandardIndex) {
+            return 1; // Custom key comes before this standard key
+        } else if (bCustomPos > aStandardIndex) {
+            return -1; // Custom key comes after this standard key
+        } else {
+            return 1; // Standard key comes after custom key at same position
         }
     }
 
-    // Standard sorting
-    const aIndex = standardKeys.indexOf(a);
-    const bIndex = standardKeys.indexOf(b);
+    // One is standard, one is unknown
+    if (aStandardIndex !== -1) return -1; // Standard key comes first
+    if (bStandardIndex !== -1) return 1; // Standard key comes first
 
-    if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-    }
+    // One is custom, one is unknown
+    if (aCustomPos !== undefined) return -1; // Custom key comes before unknown
+    if (bCustomPos !== undefined) return 1; // Custom key comes before unknown
 
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    // Handle custom extensions after standard keys
-    if (aCustomPos !== undefined) return -1;
-    if (bCustomPos !== undefined) return 1;
-
-    // For unknown keys, sort alphabetically at the end
+    // Both are unknown - sort alphabetically
     return a.localeCompare(b);
 }
 //#endregion
