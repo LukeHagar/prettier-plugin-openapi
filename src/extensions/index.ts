@@ -33,7 +33,7 @@ import {
   OAuthFlowKeys,
   ServerVariableKeys,
 } from '../keys.js';
-import { type VendorModule } from './vendor-loader.js';
+import type { VendorModule } from './vendor-loader.js';
 
 /**
  * Type-safe context-specific extension functions

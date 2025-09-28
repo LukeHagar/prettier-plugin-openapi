@@ -72,7 +72,7 @@ describe('Vendor Extension Collision Detection', () => {
 
     // Verify that collisions were detected and logged
     expect(capturedWarnings).toHaveLength(2); // Two collisions detected
-    
+
     // Check that the warnings contain the expected collision information
     expect(capturedWarnings[0]).toContain('Extension collision detected!');
     expect(capturedWarnings[0]).toContain('x-shared-extension');
@@ -88,12 +88,12 @@ describe('Vendor Extension Collision Detection', () => {
 
     // Verify that the first vendor's position is used (VendorA wins)
     expect(extensions['top-level']['x-shared-extension']).toBeDefined();
-    expect(extensions['operation']['x-operation-extension']).toBeDefined();
+    expect(extensions.operation['x-operation-extension']).toBeDefined();
 
     // Verify that non-colliding extensions are still present
     expect(extensions['top-level']['x-custom-extension']).toBeDefined();
     expect(extensions['top-level']['x-different-extension']).toBeDefined();
-    expect(extensions['schema']['x-schema-extension']).toBeDefined();
+    expect(extensions.schema['x-schema-extension']).toBeDefined();
   });
 
   it('should handle collisions across different contexts', () => {
@@ -139,9 +139,9 @@ describe('Vendor Extension Collision Detection', () => {
 
     // Verify that extensions in different contexts don't collide
     expect(extensions['top-level']['x-global-extension']).toBeDefined();
-    expect(extensions['operation']['x-global-extension']).toBeDefined();
-    expect(extensions['schema']['x-global-extension']).toBeDefined();
-    expect(extensions['operation']['x-different-extension']).toBeDefined();
+    expect(extensions.operation['x-global-extension']).toBeDefined();
+    expect(extensions.schema['x-global-extension']).toBeDefined();
+    expect(extensions.operation['x-different-extension']).toBeDefined();
   });
 
   it('should handle multiple collisions from the same vendor', () => {
@@ -176,7 +176,7 @@ describe('Vendor Extension Collision Detection', () => {
 
     // Should have two collision warnings
     expect(capturedWarnings).toHaveLength(2);
-    
+
     // Both collisions should be detected
     const collisionKeys = capturedWarnings.map(warning => {
       const match = warning.match(/Key: "([^"]+)"/);

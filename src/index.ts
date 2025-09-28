@@ -302,7 +302,7 @@ function sortOpenAPIKeys(obj: any): any {
 
     const sortedKeys = Object.keys(obj).sort((a, b) => {
         // Use the unified sorting function
-        return sortKeys(a, b, standardKeys, customExtensions);;
+        return sortKeys(a, b, standardKeys, customExtensions);
     });
 
     const sortedObj: any = {};
@@ -381,8 +381,8 @@ function sortTags(a: Tag, b: Tag): number {
 
 function sortResponseCodes(a: string, b: string): number {
     // Sort response codes numerically
-    const aNum = parseInt(a);
-    const bNum = parseInt(b);
+    const aNum = parseInt(a, 10);
+    const bNum = parseInt(b, 10);
 
     if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
         return aNum - bNum;
