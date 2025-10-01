@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows: ["CI"]         # Must match the CI workflow name exactly
     types: [completed]
+    branches: [main]
 
 permissions:
   contents: write             # Needed to create tags/releases
