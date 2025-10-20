@@ -123,12 +123,12 @@ export const ComponentsKeys = [
 
 export const OperationKeys = [
     // Important short info at a glance.
-    'summary',
     'operationId',
-    'description',
-    'externalDocs',      // OpenAPI 3.0+
+    'summary',
     'tags',
     'deprecated',
+    'description',
+    'externalDocs',      // OpenAPI 3.0+
 
     // Security is a often short list, and is usually not included at the operation level.
     'security',
