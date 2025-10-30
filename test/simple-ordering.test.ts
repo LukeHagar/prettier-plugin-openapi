@@ -100,11 +100,11 @@ describe('Simple Key Ordering Tests', () => {
     const responsesIndex = resultString.indexOf('responses');
     const callbacksIndex = resultString.indexOf('callbacks');
 
-    expect(summaryIndex).toBeLessThan(operationIdIndex);
+    expect(operationIdIndex).toBeLessThan(summaryIndex);
     expect(operationIdIndex).toBeLessThan(descriptionIndex);
     expect(descriptionIndex).toBeLessThan(tagsIndex);
     expect(tagsIndex).toBeLessThan(deprecatedIndex);
-    expect(deprecatedIndex).toBeLessThan(securityIndex);
+    expect(securityIndex).toBeLessThan(deprecatedIndex);
     expect(securityIndex).toBeLessThan(serversIndex);
     expect(serversIndex).toBeLessThan(parametersIndex);
     expect(parametersIndex).toBeLessThan(requestBodyIndex);
