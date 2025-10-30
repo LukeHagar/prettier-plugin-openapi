@@ -235,7 +235,7 @@ function isPathObject(obj: any): boolean {
     return Object.keys(obj).some(key => httpMethods.includes(key.toLowerCase()));
 }
 
-export const languages: Partial<SupportLanguage>[] = [
+export const languages: SupportLanguage[] = [
     {
         name: 'openapi',
         extensions: [
@@ -244,7 +244,7 @@ export const languages: Partial<SupportLanguage>[] = [
         ],
         parsers: ['openapi-parser'],
     },
-];
+] as const;
 
 export const parsers: Record<string, Parser> = {
     'openapi-parser': {
