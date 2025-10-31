@@ -182,6 +182,21 @@ function isOpenAPIFile(content: any, filePath?: string): boolean {
         return true;
     }
 
+    // Check for header-like structures (OpenAPI 3.0+)
+    if (isHeaderObject(content)) {
+        return true;
+    }
+
+    // Check for link-like structures (OpenAPI 3.0+)
+    if (isLinkObject(content)) {
+        return true;
+    }
+
+    // Check for request body-like structures (OpenAPI 3.0+)
+    if (isRequestBodyObject(content)) {
+        return true;
+    }
+
     // Check for security scheme-like structures
     if (isSecuritySchemeObject(content)) {
         return true;
@@ -293,9 +308,38 @@ function formatOpenAPI(content: any, format: 'json' | 'yaml', options?: OpenAPIP
 }
 
 function sortOpenAPIKeys(obj: any): any {
-
-    // Determine what class of OpebAPI schema this is
-    const contextKey = getContextKey("", obj);
+    // Special handling: if root object is a referenced OpenAPI object (for referenced files)
+    // Check for ref-able object types before checking for root-level keys
+    let contextKey = 'top-level';
+    
+    // Skip detection if it's a full OpenAPI spec (has openapi/swagger)
+    if (!('openapi' in obj) && !('swagger' in obj)) {
+        // Check for all ref-able object types in priority order
+        // Check more specific types first to avoid false positives
+        if (isLinkObject(obj)) {
+            contextKey = 'link';
+        } else if (isOperationObject(obj)) {
+            contextKey = 'operation';
+        } else if (isSchemaObject(obj)) {
+            contextKey = 'schema';
+        } else if (isParameterObject(obj)) {
+            contextKey = 'parameter';
+        } else if (isResponseObject(obj)) {
+            contextKey = 'response';
+        } else if (isHeaderObject(obj)) {
+            contextKey = 'header';
+        } else if (isPathItemObject(obj)) {
+            contextKey = 'pathItem';
+        } else if (isRequestBodyObject(obj)) {
+            contextKey = 'requestBody';
+        } else {
+            // Fall back to standard context detection
+            contextKey = getContextKey("", obj);
+        }
+    } else {
+        // Determine what class of OpenAPI schema this is for full specs
+        contextKey = getContextKey("", obj);
+    }
 
     const standardKeys = getStandardKeysForContext(contextKey);
     const customExtensions = vendorExtensions[contextKey] || {};
@@ -329,6 +373,19 @@ function sortOpenAPIKeysEnhanced(obj: any, path: string = ''): any {
 
         if (path === 'tags') {
             return sortedObjs.sort((a, b) => sortTags(a, b));
+        }
+
+        // Sort parameter arrays so $ref items come first
+        // Check if this array is a parameters array (path ends with '.parameters' or is 'parameters')
+        if (path.endsWith('.parameters') || path === 'parameters') {
+            return sortedObjs.sort((a, b) => {
+                const aHasRef = a && typeof a === 'object' && '$ref' in a;
+                const bHasRef = b && typeof b === 'object' && '$ref' in b;
+                
+                if (aHasRef && !bHasRef) return -1; // $ref comes first
+                if (!aHasRef && bHasRef) return 1;  // $ref comes first
+                return 0; // Keep original order for items of same type
+            });
         }
 
         return sortedObjs;
@@ -394,8 +451,25 @@ function sortResponseCodes(a: string, b: string): number {
 //#region Object type detection functions
 
 function isOperationObject(obj: any): boolean {
-    const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'];
-    return Object.keys(obj).some(key => httpMethods.includes(key.toLowerCase()));
+    if (!obj || typeof obj !== 'object') {
+        return false;
+    }
+    
+    // An operation object must have strong operation indicators
+    // HTTP methods indicate a path item, not an operation
+    // Strong indicators: operationId or responses (required fields in operations)
+    // Secondary indicators: requestBody, callbacks (operation-specific)
+    if ('operationId' in obj || 'responses' in obj) {
+        return true;
+    }
+    
+    // If it has both requestBody or callbacks (operation-specific) AND other operation keys
+    if (('requestBody' in obj || 'callbacks' in obj) && 
+        ('parameters' in obj || 'security' in obj || 'servers' in obj)) {
+        return true;
+    }
+    
+    return false;
 }
 
 function isParameterObject(obj: any): boolean {
@@ -468,7 +542,11 @@ function isHeaderObject(obj: any): boolean {
 }
 
 function isLinkObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && ('operationRef' in obj || 'operationId' in obj);
+    if (!obj || typeof obj !== 'object') {
+        return false;
+    }
+    // Link objects have operationRef OR operationId, but NOT responses (which indicates an operation)
+    return ('operationRef' in obj || ('operationId' in obj && !('responses' in obj)));
 }
 
 function isExampleObject(obj: any): boolean {
@@ -622,7 +700,10 @@ function getContextKey(path: string, obj: any): string {
     if (path.includes('.variables.')) return 'serverVariable';
 
     // Check object types as fallback
-    if (isOperationObject(obj)) return 'operation';
+    // Only check for operation if path is not empty (not at root level)
+    // Root-level objects should not be detected as operations unless they're truly operations
+    // (handled separately in sortOpenAPIKeys for referenced operation files)
+    if (path && isOperationObject(obj)) return 'operation';
     if (isParameterObject(obj)) return 'parameter';
     if (isSchemaObject(obj)) return 'schema';
     if (isResponseObject(obj)) return 'response';
