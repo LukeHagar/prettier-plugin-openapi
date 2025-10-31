@@ -102,9 +102,10 @@ describe('Simple Key Ordering Tests', () => {
 
     expect(operationIdIndex).toBeLessThan(summaryIndex);
     expect(operationIdIndex).toBeLessThan(descriptionIndex);
-    expect(tagsIndex).toBeLessThan(descriptionIndex);
+    expect(summaryIndex).toBeLessThan(tagsIndex);
     expect(tagsIndex).toBeLessThan(deprecatedIndex);
-    expect(securityIndex).toBeLessThan(deprecatedIndex);
+    expect(deprecatedIndex).toBeLessThan(descriptionIndex);
+    expect(descriptionIndex).toBeLessThan(securityIndex);
     expect(securityIndex).toBeLessThan(serversIndex);
     expect(serversIndex).toBeLessThan(parametersIndex);
     expect(parametersIndex).toBeLessThan(requestBodyIndex);
