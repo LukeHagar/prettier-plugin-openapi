@@ -1,47 +1,49 @@
-import * as yaml from 'js-yaml';
-import type { AstPath, Doc, Parser, ParserOptions, Printer, SupportLanguage } from 'prettier';
-import { getVendorExtensions } from './extensions/vendor-loader.js';
+import * as yaml from "js-yaml";
+import type { AstPath, Doc, Parser, ParserOptions, Printer, SupportLanguage } from "prettier";
+import prettier from "prettier";
+import { getVendorExtensions } from "./extensions/vendor-loader.js";
 
 export type PrintFn = (path: AstPath) => Doc;
 
 import {
-    ComponentsKeys,
-    ContactKeys,
-    DiscriminatorKeys,
-    EncodingKeys,
-    ExampleKeys,
-    ExternalDocsKeys,
-    HeaderKeys,
-    InfoKeys,
-    LicenseKeys,
-    LinkKeys,
-    MediaTypeKeys,
-    OAuthFlowKeys,
-    OperationKeys,
-    ParameterKeys,
-    PathItemKeys,
-    RequestBodyKeys,
-    ResponseKeys,
-    RootKeys,
-    SchemaKeys,
-    SecuritySchemeKeys,
-    ServerKeys,
-    ServerVariableKeys,
-    TagKeys,
-    WebhookKeys,
-    XMLKeys,
-} from './keys.js';
+  ComponentsKeys,
+  ContactKeys,
+  DiscriminatorKeys,
+  EncodingKeys,
+  ExampleKeys,
+  ExternalDocsKeys,
+  HeaderKeys,
+  InfoKeys,
+  LicenseKeys,
+  LinkKeys,
+  MediaTypeKeys,
+  OAuthFlowKeys,
+  OperationKeys,
+  ParameterKeys,
+  PathItemKeys,
+  RequestBodyKeys,
+  ResponseKeys,
+  RootKeys,
+  SchemaKeys,
+  SecuritySchemeKeys,
+  ServerKeys,
+  ServerVariableKeys,
+  TagKeys,
+  WebhookKeys,
+  XMLKeys,
+} from "./keys.js";
 
 // Type definitions for better type safety
 interface OpenAPINode {
-    isOpenAPI: boolean;
-    content?: any;
-    format?: 'json' | 'yaml';
+  isOpenAPI: boolean;
+  content?: any;
+  format?: "json" | "yaml";
 }
 
 interface OpenAPIPluginOptions {
-    tabWidth?: number;
-    printWidth?: number;
+  tabWidth?: number;
+  printWidth?: number;
+  formatMarkdown?: boolean; // Option to enable/disable markdown formatting (default: true)
 }
 
 // Load vendor extensions
@@ -51,70 +53,70 @@ const vendorExtensions = getVendorExtensions();
  * Unified parser that can handle both JSON and YAML OpenAPI files
  */
 function parseOpenAPIFile(text: string, options?: any): OpenAPINode {
-    let format: 'json' | 'yaml' | undefined;
+  let format: "json" | "yaml" | undefined;
 
-    if (options?.filepath) {
-        switch (true) {
-            case options?.filepath.endsWith('.yaml') || options?.filepath.endsWith('.yml'):
-                format = 'yaml';
-                break;
-            case options?.filepath.endsWith('.json'):
-                format = 'json';
-                break;
-        }
+  if (options?.filepath) {
+    switch (true) {
+      case options?.filepath.endsWith(".yaml") || options?.filepath.endsWith(".yml"):
+        format = "yaml";
+        break;
+      case options?.filepath.endsWith(".json"):
+        format = "json";
+        break;
     }
+  }
 
-    if (!format) {
-        // Try to detect format from content
-        const trimmedText = text.trim();
-        if (trimmedText.startsWith('{') || trimmedText.startsWith('[')) {
-            format = 'json';
-        } else {
-            format = 'yaml';
-        }
+  if (!format) {
+    // Try to detect format from content
+    const trimmedText = text.trim();
+    if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+      format = "json";
+    } else {
+      format = "yaml";
     }
+  }
 
-    let parsed: any;
+  let parsed: any;
 
-    try {
-        switch (format) {
-            case 'yaml':
-                parsed = yaml.load(text, {
-                    schema: yaml.DEFAULT_SCHEMA,
-                });
-                break;
-            case 'json':
-                parsed = JSON.parse(text);
-                break;
-        }
-    } catch (error) {
-        return {
-            isOpenAPI: false,
-        }
+  try {
+    switch (format) {
+      case "yaml":
+        parsed = yaml.load(text, {
+          schema: yaml.DEFAULT_SCHEMA,
+        });
+        break;
+      case "json":
+        parsed = JSON.parse(text);
+        break;
     }
+  } catch (error) {
+    return {
+      isOpenAPI: false,
+    };
+  }
 
-    let isOpenAPI: boolean;
+  let isOpenAPI: boolean;
 
-    try {
-        isOpenAPI = isOpenAPIFile(parsed, options?.filepath);
-    } catch (error) {
-        return {
-            isOpenAPI: false,
-        }
-    }
+  try {
+    isOpenAPI = isOpenAPIFile(parsed, options?.filepath);
+  } catch (error) {
+    return {
+      isOpenAPI: false,
+    };
+  }
 
-    switch (isOpenAPI) {
-        case true:
-            return {
-                isOpenAPI: true,
-                content: parsed,
-                format: format,
-            }
-        case false:
-            return {
-                isOpenAPI: false,
-            }
-    }
+  switch (isOpenAPI) {
+    case true:
+      return {
+        isOpenAPI: true,
+        content: parsed,
+        format: format,
+      };
+    case false:
+      return {
+        isOpenAPI: false,
+      };
+  }
 }
 
 // ============================================================================
@@ -125,456 +127,693 @@ function parseOpenAPIFile(text: string, options?: any): OpenAPINode {
  * Detects if a file is an OpenAPI-related file based on content and structure
  */
 function isOpenAPIFile(content: any, filePath?: string): boolean {
-    if (!content || typeof content !== 'object') {
-        return false;
-    }
-
-    // Check for root-level OpenAPI indicators (most important)
-    if (content.openapi || content.swagger) {
-        return true;
-    }
-
-    // Check file path patterns for common OpenAPI file structures
-    // Only accept files in OpenAPI-related directories
-    if (filePath) {
-        const path = filePath.toLowerCase();
-
-        // Check for component directory patterns
-        if (path.includes('/components/') ||
-            path.includes('/schemas/') ||
-            path.includes('/parameters/') ||
-            path.includes('/responses/') ||
-            path.includes('/requestbodies/') ||
-            path.includes('/headers/') ||
-            path.includes('/examples/') ||
-            path.includes('/securityschemes/') ||
-            path.includes('/links/') ||
-            path.includes('/callbacks/') ||
-            path.includes('/webhooks/') ||
-            path.includes('/paths/')) {
-            return true;
-        }
-    }
-
-    // Check for component-like structures (only if we have strong indicators)
-    if (content.components || content.definitions || content.parameters || content.responses || content.securityDefinitions) {
-        return true;
-    }
-
-    // Check for path-like structures (operations)
-    if (content.paths || isPathObject(content)) {
-        return true;
-    }
-
-    // Check for schema-like structures (but be more strict)
-    // Only accept if we have strong schema indicators
-    if (isSchemaObject(content) && (content.$ref || content.allOf || content.oneOf || content.anyOf || content.not || content.properties || content.items)) {
-        return true;
-    }
-
-    // Check for parameter-like structures
-    if (isParameterObject(content)) {
-        return true;
-    }
-
-    // Check for response-like structures
-    if (isResponseObject(content)) {
-        return true;
-    }
-
-    // Check for header-like structures (OpenAPI 3.0+)
-    if (isHeaderObject(content)) {
-        return true;
-    }
-
-    // Check for link-like structures (OpenAPI 3.0+)
-    if (isLinkObject(content)) {
-        return true;
-    }
-
-    // Check for request body-like structures (OpenAPI 3.0+)
-    if (isRequestBodyObject(content)) {
-        return true;
-    }
-
-    // Check for security scheme-like structures
-    if (isSecuritySchemeObject(content)) {
-        return true;
-    }
-
-    // Check for server-like structures
-    if (isServerObject(content)) {
-        return true;
-    }
-
-    // Check for tag-like structures
-    if (isTagObject(content)) {
-        return true;
-    }
-
-    // Check for external docs-like structures
-    if (isExternalDocsObject(content)) {
-        return true;
-    }
-
-    // Check for webhook-like structures
-    if (isWebhookObject(content)) {
-        return true;
-    }
-
-    // Additional strict check: reject objects that look like generic data
-    // If an object only has simple properties like name, age, etc. without any OpenAPI structure, reject it
-    const keys = Object.keys(content);
-    const hasOnlyGenericProperties = keys.every(key =>
-        !key.startsWith('x-') && // Not a custom extension
-        !['openapi', 'swagger', 'info', 'paths', 'components', 'definitions', 'parameters', 'responses', 'securityDefinitions', 'tags', 'servers', 'webhooks'].includes(key)
-    );
-
-    if (hasOnlyGenericProperties) {
-        return false;
-    }
-
-    // If none of the above conditions are met, it's not an OpenAPI file
+  if (!content || typeof content !== "object") {
     return false;
+  }
+
+  // Check for root-level OpenAPI indicators (most important)
+  if (content.openapi || content.swagger) {
+    return true;
+  }
+
+  // Check file path patterns for common OpenAPI file structures
+  // Only accept files in OpenAPI-related directories
+  if (filePath) {
+    const path = filePath.toLowerCase();
+
+    // Check for component directory patterns
+    if (
+      path.includes("/components/") ||
+      path.includes("/schemas/") ||
+      path.includes("/parameters/") ||
+      path.includes("/responses/") ||
+      path.includes("/requestbodies/") ||
+      path.includes("/headers/") ||
+      path.includes("/examples/") ||
+      path.includes("/securityschemes/") ||
+      path.includes("/links/") ||
+      path.includes("/callbacks/") ||
+      path.includes("/webhooks/") ||
+      path.includes("/paths/")
+    ) {
+      return true;
+    }
+  }
+
+  // Check for component-like structures (only if we have strong indicators)
+  if (
+    content.components ||
+    content.definitions ||
+    content.parameters ||
+    content.responses ||
+    content.securityDefinitions
+  ) {
+    return true;
+  }
+
+  // Check for path-like structures (operations)
+  if (content.paths || isPathObject(content)) {
+    return true;
+  }
+
+  // Check for schema-like structures (but be more strict)
+  // Only accept if we have strong schema indicators
+  if (
+    isSchemaObject(content) &&
+    (content.$ref ||
+      content.allOf ||
+      content.oneOf ||
+      content.anyOf ||
+      content.not ||
+      content.properties ||
+      content.items)
+  ) {
+    return true;
+  }
+
+  // Check for parameter-like structures
+  if (isParameterObject(content)) {
+    return true;
+  }
+
+  // Check for response-like structures
+  if (isResponseObject(content)) {
+    return true;
+  }
+
+  // Check for header-like structures (OpenAPI 3.0+)
+  if (isHeaderObject(content)) {
+    return true;
+  }
+
+  // Check for link-like structures (OpenAPI 3.0+)
+  if (isLinkObject(content)) {
+    return true;
+  }
+
+  // Check for request body-like structures (OpenAPI 3.0+)
+  if (isRequestBodyObject(content)) {
+    return true;
+  }
+
+  // Check for security scheme-like structures
+  if (isSecuritySchemeObject(content)) {
+    return true;
+  }
+
+  // Check for server-like structures
+  if (isServerObject(content)) {
+    return true;
+  }
+
+  // Check for tag-like structures
+  if (isTagObject(content)) {
+    return true;
+  }
+
+  // Check for external docs-like structures
+  if (isExternalDocsObject(content)) {
+    return true;
+  }
+
+  // Check for webhook-like structures
+  if (isWebhookObject(content)) {
+    return true;
+  }
+
+  // Additional strict check: reject objects that look like generic data
+  // If an object only has simple properties like name, age, etc. without any OpenAPI structure, reject it
+  const keys = Object.keys(content);
+  const hasOnlyGenericProperties = keys.every(
+    (key) =>
+      !key.startsWith("x-") && // Not a custom extension
+      ![
+        "openapi",
+        "swagger",
+        "info",
+        "paths",
+        "components",
+        "definitions",
+        "parameters",
+        "responses",
+        "securityDefinitions",
+        "tags",
+        "servers",
+        "webhooks",
+      ].includes(key)
+  );
+
+  if (hasOnlyGenericProperties) {
+    return false;
+  }
+
+  // If none of the above conditions are met, it's not an OpenAPI file
+  return false;
 }
 
 /**
  * Detects if an object represents a path with operations
  */
 function isPathObject(obj: any): boolean {
-    if (!obj || typeof obj !== 'object') {
-        return false;
-    }
+  if (!obj || typeof obj !== "object") {
+    return false;
+  }
 
-    const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'];
-    return Object.keys(obj).some(key => httpMethods.includes(key.toLowerCase()));
+  const httpMethods = ["get", "post", "put", "patch", "delete", "head", "options", "trace"];
+  return Object.keys(obj).some((key) => httpMethods.includes(key.toLowerCase()));
 }
 
 export const languages: SupportLanguage[] = [
-    {
-        name: 'openapi',
-        extensions: [
-            // Accepting all JSON and YAML files so that component files used by $ref work
-            '.json', '.yaml', '.yml'
-        ],
-        parsers: ['openapi-parser'],
-    },
+  {
+    name: "openapi",
+    extensions: [
+      // Accepting all JSON and YAML files so that component files used by $ref work
+      ".json",
+      ".yaml",
+      ".yml",
+    ],
+    parsers: ["openapi-parser"],
+  },
 ] as const;
 
 export const parsers: Record<string, Parser> = {
-    'openapi-parser': {
-        parse: (text: string, options?: any): OpenAPINode => {
-            return parseOpenAPIFile(text, options);
-        },
-        astFormat: 'openapi-ast',
-        locStart: (node: OpenAPINode) => 0,
-        locEnd: (node: OpenAPINode) => node.content?.length || 0,
+  "openapi-parser": {
+    parse: (text: string, options?: any): OpenAPINode => {
+      return parseOpenAPIFile(text, options);
     },
-}
+    astFormat: "openapi-ast",
+    locStart: (node: OpenAPINode) => 0,
+    locEnd: (node: OpenAPINode) => node.content?.length || 0,
+  },
+};
 
 export const printers: Record<string, Printer> = {
-    'openapi-ast': {
-        print: (path: AstPath, options: ParserOptions, print: PrintFn): string => {
-            const node = path.getNode();
-            if (!node.isOpenAPI || node.isOpenAPI === false) {
-                // Return original text unchanged
-                return options.originalText;
-            }
-            return formatOpenAPI(node.content, node.format, options);
-        },
+  "openapi-ast": {
+    print: (path: AstPath, options: ParserOptions, print: PrintFn): string => {
+      const node = path.getNode();
+      if (!node.isOpenAPI || node.isOpenAPI === false) {
+        // Return original text unchanged
+        return options.originalText;
+      }
+      return formatOpenAPI(node.content, node.format, options);
     },
+  },
+};
+
+/**
+ * Formats markdown strings using Prettier's markdown formatter
+ * Since Prettier plugins must be synchronous, we access Prettier's internal formatting APIs
+ */
+function formatMarkdownSync(markdown: string, options?: OpenAPIPluginOptions): string {
+  if (!markdown || typeof markdown !== "string") {
+    return markdown;
+  }
+
+  // Skip formatting if disabled
+  if (options?.formatMarkdown === false) {
+    return markdown;
+  }
+
+  // Trim to avoid formatting whitespace-only strings
+  const trimmed = markdown.trim();
+  if (trimmed.length === 0) {
+    return markdown;
+  }
+
+  try {
+    const prettierInstance = prettier as any;
+
+    // Try multiple approaches to access Prettier's markdown formatting
+    // Approach 1: Try formatDocument (internal API)
+    if (prettierInstance.formatDocument) {
+      try {
+        const formatted = prettierInstance.formatDocument(trimmed, {
+          parser: "markdown",
+          printWidth: options?.printWidth || 80,
+          tabWidth: options?.tabWidth || 2,
+          proseWrap: "preserve",
+        });
+        return formatted.trimEnd();
+      } catch {
+        // Fall through to next approach
+      }
+    }
+
+    // Approach 2: Try to access Prettier's markdown formatting synchronously
+    // Since Prettier.format is async, we need to find a sync way to format markdown
+    // Prettier's internal APIs might not expose sync formatting, so we'll need to
+    // either use a sync wrapper or do intelligent normalization
+
+    // Try using Prettier's format through require (if available in sync context)
+    try {
+      const prettierModule = require("prettier");
+
+      // Check if there's a synchronous formatting method
+      // Prettier 3.x might expose different APIs
+      if (prettierModule.__internal?.markdown?.formatSync) {
+        const formatted = prettierModule.__internal.markdown.formatSync(trimmed, {
+          printWidth: options?.printWidth || 80,
+          tabWidth: options?.tabWidth || 2,
+          proseWrap: "preserve",
+        });
+        return formatted.trimEnd();
+      }
+
+      // Try accessing Prettier's internal formatting through utils
+      if (prettierModule.__internal?.utils) {
+        const utils = prettierModule.__internal.utils;
+        // Check if there's a sync formatter in utils
+        // This is a best-effort attempt to use Prettier's formatting
+      }
+    } catch {
+      // Prettier's internal APIs may not be accessible or may not be sync
+      // Fall through to manual formatting
+    }
+
+    // Approach 3: Manual markdown formatting
+    // Since Prettier.format is async and plugins must be sync,
+    // we do intelligent markdown normalization that matches Prettier's style
+    let formatted = trimmed;
+
+    // Normalize line breaks (preserve intentional double line breaks)
+    formatted = formatted.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+    // Normalize multiple blank lines to maximum of 2 (preserve paragraph breaks)
+    formatted = formatted.replace(/\n{3,}/g, "\n\n");
+
+    // Process each line
+    const lines = formatted.split("\n");
+    const processedLines = lines.map((line) => {
+      // Preserve code block indentation (lines starting with 4+ spaces or tabs)
+      if (/^[\t ]{4,}/.test(line)) {
+        // Code block - preserve but normalize trailing whitespace
+        return line.trimEnd();
+      }
+
+      // For regular lines, normalize multiple spaces to single spaces
+      // But preserve intentional formatting (like tables, lists with specific spacing)
+      // First, trim trailing whitespace
+      let processed = line.trimEnd();
+
+      // Normalize multiple spaces to single space, but preserve:
+      // - Multiple spaces at start (indentation for nested lists)
+      // - Patterns that look intentional (like markdown tables)
+      if (!/^[\s]*\|/.test(processed) && !/^[\s]*[-*+]\s{2,}/.test(processed)) {
+        // Not a table or list, normalize spaces
+        processed = processed.replace(/[ \t]+/g, " ");
+      }
+
+      return processed;
+    });
+
+    formatted = processedLines.join("\n");
+
+    // Remove trailing newline if we added one (we want YAML to control formatting)
+    formatted = formatted.trimEnd();
+
+    return formatted;
+  } catch (error) {
+    // If markdown formatting fails, return original string
+    return markdown;
+  }
+}
+
+/**
+ * Recursively formats all description and summary fields that may contain markdown
+ */
+function formatMarkdownFields(obj: any, options?: OpenAPIPluginOptions): any {
+  if (typeof obj !== "object" || obj === null) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => formatMarkdownFields(item, options));
+  }
+
+  const formatted: any = {};
+
+  for (const [key, value] of Object.entries(obj)) {
+    // Fields that commonly contain markdown in OpenAPI
+    const markdownFields = ["description", "summary"];
+
+    if (markdownFields.includes(key) && typeof value === "string" && value.trim().length > 0) {
+      // Format markdown synchronously
+      formatted[key] = formatMarkdownSync(value, options);
+    } else if (typeof value === "object" && value !== null) {
+      // Recursively process nested objects
+      formatted[key] = formatMarkdownFields(value, options);
+    } else {
+      // Keep other values as-is
+      formatted[key] = value;
+    }
+  }
+
+  return formatted;
 }
 
 /**
  * Unified formatter that outputs in the detected format
  */
-function formatOpenAPI(content: any, format: 'json' | 'yaml', options?: OpenAPIPluginOptions): string {
-    // Sort keys for better organization
-    const sortedContent = sortOpenAPIKeys(content);
+function formatOpenAPI(
+  content: any,
+  format: "json" | "yaml",
+  options?: OpenAPIPluginOptions
+): string {
+  // Sort keys for better organization
+  const sortedContent = sortOpenAPIKeys(content);
 
-    switch (format) {
-        case 'json':
-            return JSON.stringify(sortedContent, null, options?.tabWidth || 2);
-        case 'yaml':
-            // Format YAML with proper indentation and line breaks
-            return yaml.dump(sortedContent, {
-                indent: options?.tabWidth || 2,
-                lineWidth: options?.printWidth || 80,
-                noRefs: true,
-                quotingType: '"',
-                forceQuotes: false,
-            });
-    }
+  // Format markdown in description and summary fields
+  const contentWithFormattedMarkdown = formatMarkdownFields(sortedContent, options);
+
+  switch (format) {
+    case "json":
+      return JSON.stringify(contentWithFormattedMarkdown, null, options?.tabWidth || 2);
+    case "yaml":
+      // Format YAML with proper indentation and line breaks
+      // Use lineWidth: -1 to disable automatic line wrapping for better markdown preservation
+      return yaml.dump(contentWithFormattedMarkdown, {
+        indent: options?.tabWidth || 2,
+        lineWidth: -1, // Disable line width to preserve markdown formatting
+        noRefs: true,
+        quotingType: '"',
+        forceQuotes: false,
+      });
+  }
 }
 
 function sortOpenAPIKeys(obj: any): any {
-    // Special handling: if root object is a referenced OpenAPI object (for referenced files)
-    // Check for ref-able object types before checking for root-level keys
-    let contextKey = 'top-level';
-    
-    // Skip detection if it's a full OpenAPI spec (has openapi/swagger)
-    if (!('openapi' in obj) && !('swagger' in obj)) {
-        // Check for all ref-able object types in priority order
-        // Check more specific types first to avoid false positives
-        if (isLinkObject(obj)) {
-            contextKey = 'link';
-        } else if (isOperationObject(obj)) {
-            contextKey = 'operation';
-        } else if (isSchemaObject(obj)) {
-            contextKey = 'schema';
-        } else if (isParameterObject(obj)) {
-            contextKey = 'parameter';
-        } else if (isResponseObject(obj)) {
-            contextKey = 'response';
-        } else if (isHeaderObject(obj)) {
-            contextKey = 'header';
-        } else if (isPathItemObject(obj)) {
-            contextKey = 'pathItem';
-        } else if (isRequestBodyObject(obj)) {
-            contextKey = 'requestBody';
-        } else {
-            // Fall back to standard context detection
-            contextKey = getContextKey("", obj);
-        }
+  // Special handling: if root object is a referenced OpenAPI object (for referenced files)
+  // Check for ref-able object types before checking for root-level keys
+  let contextKey = "top-level";
+
+  // Skip detection if it's a full OpenAPI spec (has openapi/swagger)
+  if (!("openapi" in obj) && !("swagger" in obj)) {
+    // Check for all ref-able object types in priority order
+    // Check more specific types first to avoid false positives
+    if (isLinkObject(obj)) {
+      contextKey = "link";
+    } else if (isOperationObject(obj)) {
+      contextKey = "operation";
+    } else if (isSchemaObject(obj)) {
+      contextKey = "schema";
+    } else if (isParameterObject(obj)) {
+      contextKey = "parameter";
+    } else if (isResponseObject(obj)) {
+      contextKey = "response";
+    } else if (isHeaderObject(obj)) {
+      contextKey = "header";
+    } else if (isPathItemObject(obj)) {
+      contextKey = "pathItem";
+    } else if (isRequestBodyObject(obj)) {
+      contextKey = "requestBody";
     } else {
-        // Determine what class of OpenAPI schema this is for full specs
-        contextKey = getContextKey("", obj);
+      // Fall back to standard context detection
+      contextKey = getContextKey("", obj);
     }
+  } else {
+    // Determine what class of OpenAPI schema this is for full specs
+    contextKey = getContextKey("", obj);
+  }
 
-    const standardKeys = getStandardKeysForContext(contextKey);
-    const customExtensions = vendorExtensions[contextKey] || {};
+  const standardKeys = getStandardKeysForContext(contextKey);
+  const customExtensions = vendorExtensions[contextKey] || {};
 
-    const sortedKeys = Object.keys(obj).sort((a, b) => {
-        // Use the unified sorting function
-        return sortKeys(a, b, standardKeys, customExtensions);
-    });
+  const sortedKeys = Object.keys(obj).sort((a, b) => {
+    // Use the unified sorting function
+    return sortKeys(a, b, standardKeys, customExtensions);
+  });
 
-    const sortedObj: any = {};
-    for (const key of sortedKeys) {
-        sortedObj[key] = sortOpenAPIKeysEnhanced(obj[key], key);
-    }
+  const sortedObj: any = {};
+  for (const key of sortedKeys) {
+    sortedObj[key] = sortOpenAPIKeysEnhanced(obj[key], key);
+  }
 
-    return sortedObj;
+  return sortedObj;
 }
 
 // Enhanced sorting for nested OpenAPI structures
-function sortOpenAPIKeysEnhanced(obj: any, path: string = ''): any {
-    if (typeof obj !== 'object' || obj === null) {
-        return obj;
+function sortOpenAPIKeysEnhanced(obj: any, path: string = ""): any {
+  if (typeof obj !== "object" || obj === null) {
+    return obj;
+  }
+
+  // Handle arrays by recursively sorting each element
+  if (Array.isArray(obj)) {
+    const sortedObjs = [];
+
+    for (let i = 0; i < obj.length; i++) {
+      sortedObjs.push(sortOpenAPIKeysEnhanced(obj[i], `${path}[${i}]`));
     }
 
-    // Handle arrays by recursively sorting each element
-    if (Array.isArray(obj)) {
-        const sortedObjs = []
-
-        for (let i = 0; i < obj.length; i++) {
-            sortedObjs.push(sortOpenAPIKeysEnhanced(obj[i], `${path}[${i}]`));
-        }
-
-        if (path === 'tags') {
-            return sortedObjs.sort((a, b) => sortTags(a, b));
-        }
-
-        // Sort parameter arrays so $ref items come first
-        // Check if this array is a parameters array (path ends with '.parameters' or is 'parameters')
-        if (path.endsWith('.parameters') || path === 'parameters') {
-            return sortedObjs.sort((a, b) => {
-                const aHasRef = a && typeof a === 'object' && '$ref' in a;
-                const bHasRef = b && typeof b === 'object' && '$ref' in b;
-                
-                if (aHasRef && !bHasRef) return -1; // $ref comes first
-                if (!aHasRef && bHasRef) return 1;  // $ref comes first
-                return 0; // Keep original order for items of same type
-            });
-        }
-
-        return sortedObjs;
+    if (path === "tags") {
+      return sortedObjs.sort((a, b) => sortTags(a, b));
     }
 
-    const contextKey = getContextKey(path, obj);
-    const standardKeys = getStandardKeysForContext(contextKey);
-    const customExtensions = vendorExtensions[contextKey] || {};
+    // Sort parameter arrays so $ref items come first
+    // Check if this array is a parameters array (path ends with '.parameters' or is 'parameters')
+    if (path.endsWith(".parameters") || path === "parameters") {
+      return sortedObjs.sort((a, b) => {
+        const aHasRef = a && typeof a === "object" && "$ref" in a;
+        const bHasRef = b && typeof b === "object" && "$ref" in b;
 
-    const sortedKeys = Object.keys(obj).sort((a, b) => {
-        switch (path) {
-            case 'paths':
-                return sortPathKeys(a, b);
-            case 'responses':
-                return sortResponseCodes(a, b);
-            default:
-                return sortKeys(a, b, standardKeys, customExtensions);
-        }
-    });
-
-    const sortedObj: any = {};
-    for (const key of sortedKeys) {
-        const newPath = path ? `${path}.${key}` : key;
-        sortedObj[key] = sortOpenAPIKeysEnhanced(obj[key], newPath);
+        if (aHasRef && !bHasRef) return -1; // $ref comes first
+        if (!aHasRef && bHasRef) return 1; // $ref comes first
+        return 0; // Keep original order for items of same type
+      });
     }
 
-    return sortedObj;
+    return sortedObjs;
+  }
+
+  const contextKey = getContextKey(path, obj);
+  const standardKeys = getStandardKeysForContext(contextKey);
+  const customExtensions = vendorExtensions[contextKey] || {};
+
+  const sortedKeys = Object.keys(obj).sort((a, b) => {
+    switch (path) {
+      case "paths":
+        return sortPathKeys(a, b);
+      case "responses":
+        return sortResponseCodes(a, b);
+      default:
+        return sortKeys(a, b, standardKeys, customExtensions);
+    }
+  });
+
+  const sortedObj: any = {};
+  for (const key of sortedKeys) {
+    const newPath = path ? `${path}.${key}` : key;
+    sortedObj[key] = sortOpenAPIKeysEnhanced(obj[key], newPath);
+  }
+
+  return sortedObj;
 }
 
 function sortPathKeys(a: string, b: string): number {
-    // Sort paths by specificity (more specific paths first)
-    const aSpecificity = (a.match(/\{/g) || []).length;
-    const bSpecificity = (b.match(/\{/g) || []).length;
+  // Sort paths by specificity (more specific paths first)
+  const aSpecificity = (a.match(/\{/g) || []).length;
+  const bSpecificity = (b.match(/\{/g) || []).length;
 
-    if (aSpecificity !== bSpecificity) {
-        return aSpecificity - bSpecificity;
-    }
+  if (aSpecificity !== bSpecificity) {
+    return aSpecificity - bSpecificity;
+  }
 
-    return a.localeCompare(b);
+  return a.localeCompare(b);
 }
 
 type Tag = {
-    name: string;
-}
+  name: string;
+};
 
 function sortTags(a: Tag, b: Tag): number {
-    // Sort tags by name
-    return a.name.localeCompare(b.name);
+  // Sort tags by name
+  return a.name.localeCompare(b.name);
 }
 
 function sortResponseCodes(a: string, b: string): number {
-    // Sort response codes numerically
-    const aNum = parseInt(a, 10);
-    const bNum = parseInt(b, 10);
+  // Sort response codes numerically
+  const aNum = parseInt(a, 10);
+  const bNum = parseInt(b, 10);
 
-    if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
-        return aNum - bNum;
-    }
+  if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+    return aNum - bNum;
+  }
 
-    return a.localeCompare(b);
+  return a.localeCompare(b);
 }
 
 //#region Object type detection functions
 
 function isOperationObject(obj: any): boolean {
-    if (!obj || typeof obj !== 'object') {
-        return false;
-    }
-    
-    // An operation object must have strong operation indicators
-    // HTTP methods indicate a path item, not an operation
-    // Strong indicators: operationId or responses (required fields in operations)
-    // Secondary indicators: requestBody, callbacks (operation-specific)
-    if ('operationId' in obj || 'responses' in obj) {
-        return true;
-    }
-    
-    // If it has both requestBody or callbacks (operation-specific) AND other operation keys
-    if (('requestBody' in obj || 'callbacks' in obj) && 
-        ('parameters' in obj || 'security' in obj || 'servers' in obj)) {
-        return true;
-    }
-    
+  if (!obj || typeof obj !== "object") {
     return false;
+  }
+
+  // An operation object must have strong operation indicators
+  // HTTP methods indicate a path item, not an operation
+  // Strong indicators: operationId or responses (required fields in operations)
+  // Secondary indicators: requestBody, callbacks (operation-specific)
+  if ("operationId" in obj || "responses" in obj) {
+    return true;
+  }
+
+  // If it has both requestBody or callbacks (operation-specific) AND other operation keys
+  if (
+    ("requestBody" in obj || "callbacks" in obj) &&
+    ("parameters" in obj || "security" in obj || "servers" in obj)
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 function isParameterObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && 'name' in obj && 'in' in obj;
+  return obj && typeof obj === "object" && "name" in obj && "in" in obj;
 }
 
 function isSchemaObject(obj: any): boolean {
-    if (!obj || typeof obj !== 'object') {
-        return false;
-    }
+  if (!obj || typeof obj !== "object") {
+    return false;
+  }
 
-    // Check for JSON Schema keywords - be very strict
-    const hasSchemaKeywords = '$ref' in obj || 'allOf' in obj || 'oneOf' in obj || 'anyOf' in obj || 'not' in obj;
-    const hasValidType = 'type' in obj && obj.type && ['object', 'array', 'string', 'number', 'integer', 'boolean', 'null'].includes(obj.type);
+  // Check for JSON Schema keywords - be very strict
+  const hasSchemaKeywords =
+    "$ref" in obj || "allOf" in obj || "oneOf" in obj || "anyOf" in obj || "not" in obj;
+  const hasValidType =
+    "type" in obj &&
+    obj.type &&
+    ["object", "array", "string", "number", "integer", "boolean", "null"].includes(obj.type);
 
-    // Only return true if we have clear schema indicators
-    // Must have either schema keywords OR valid type with schema properties
-    // Also require additional schema-specific properties to be more strict
-    return hasSchemaKeywords || (hasValidType && ('properties' in obj || 'items' in obj || 'enum' in obj || 'format' in obj || 'pattern' in obj));
+  // Only return true if we have clear schema indicators
+  // Must have either schema keywords OR valid type with schema properties
+  // Also require additional schema-specific properties to be more strict
+  return (
+    hasSchemaKeywords ||
+    (hasValidType &&
+      ("properties" in obj ||
+        "items" in obj ||
+        "enum" in obj ||
+        "format" in obj ||
+        "pattern" in obj))
+  );
 }
 
 function isResponseObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && ('description' in obj || 'content' in obj);
+  return obj && typeof obj === "object" && ("description" in obj || "content" in obj);
 }
 
 function isSecuritySchemeObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && 'type' in obj &&
-        ['apiKey', 'http', 'oauth2', 'openIdConnect'].includes(obj.type);
+  return (
+    obj &&
+    typeof obj === "object" &&
+    "type" in obj &&
+    ["apiKey", "http", "oauth2", "openIdConnect"].includes(obj.type)
+  );
 }
 
 function isServerObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && 'url' in obj;
+  return obj && typeof obj === "object" && "url" in obj;
 }
 
 function isTagObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && 'name' in obj && typeof obj.name === 'string' &&
-        (Object.keys(obj).length === 1 || // Only name
-            'description' in obj || // name + description
-            'externalDocs' in obj); // name + externalDocs
+  return (
+    obj &&
+    typeof obj === "object" &&
+    "name" in obj &&
+    typeof obj.name === "string" &&
+    (Object.keys(obj).length === 1 || // Only name
+      "description" in obj || // name + description
+      "externalDocs" in obj)
+  ); // name + externalDocs
 }
 
 function isExternalDocsObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && 'url' in obj;
+  return obj && typeof obj === "object" && "url" in obj;
 }
 
 function isWebhookObject(obj: any): boolean {
-    const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'];
-    return obj && typeof obj === 'object' && Object.keys(obj).some(key => httpMethods.includes(key.toLowerCase()));
+  const httpMethods = ["get", "post", "put", "patch", "delete", "head", "options", "trace"];
+  return (
+    obj &&
+    typeof obj === "object" &&
+    Object.keys(obj).some((key) => httpMethods.includes(key.toLowerCase()))
+  );
 }
 
 function isPathItemObject(obj: any): boolean {
-    const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'];
-    return obj && typeof obj === 'object' && Object.keys(obj).some(key => httpMethods.includes(key.toLowerCase()));
+  const httpMethods = ["get", "post", "put", "patch", "delete", "head", "options", "trace"];
+  return (
+    obj &&
+    typeof obj === "object" &&
+    Object.keys(obj).some((key) => httpMethods.includes(key.toLowerCase()))
+  );
 }
 
 function isRequestBodyObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && ('content' in obj || 'description' in obj);
+  return obj && typeof obj === "object" && ("content" in obj || "description" in obj);
 }
 
 function isMediaTypeObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && ('schema' in obj || 'example' in obj || 'examples' in obj);
+  return (
+    obj && typeof obj === "object" && ("schema" in obj || "example" in obj || "examples" in obj)
+  );
 }
 
 function isEncodingObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && ('contentType' in obj || 'style' in obj || 'explode' in obj);
+  return (
+    obj && typeof obj === "object" && ("contentType" in obj || "style" in obj || "explode" in obj)
+  );
 }
 
 function isHeaderObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && ('description' in obj || 'schema' in obj || 'required' in obj);
+  return (
+    obj && typeof obj === "object" && ("description" in obj || "schema" in obj || "required" in obj)
+  );
 }
 
 function isLinkObject(obj: any): boolean {
-    if (!obj || typeof obj !== 'object') {
-        return false;
-    }
-    // Link objects have operationRef OR operationId, but NOT responses (which indicates an operation)
-    return ('operationRef' in obj || ('operationId' in obj && !('responses' in obj)));
+  if (!obj || typeof obj !== "object") {
+    return false;
+  }
+  // Link objects have operationRef OR operationId, but NOT responses (which indicates an operation)
+  return "operationRef" in obj || ("operationId" in obj && !("responses" in obj));
 }
 
 function isExampleObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && ('summary' in obj || 'value' in obj || 'externalValue' in obj);
+  return (
+    obj && typeof obj === "object" && ("summary" in obj || "value" in obj || "externalValue" in obj)
+  );
 }
 
 function isDiscriminatorObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && 'propertyName' in obj;
+  return obj && typeof obj === "object" && "propertyName" in obj;
 }
 
 function isXMLObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && ('name' in obj || 'namespace' in obj || 'attribute' in obj);
+  return (
+    obj && typeof obj === "object" && ("name" in obj || "namespace" in obj || "attribute" in obj)
+  );
 }
 
 function isContactObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && ('name' in obj || 'url' in obj || 'email' in obj);
+  return obj && typeof obj === "object" && ("name" in obj || "url" in obj || "email" in obj);
 }
 
 function isLicenseObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && ('name' in obj || 'identifier' in obj || 'url' in obj);
+  return obj && typeof obj === "object" && ("name" in obj || "identifier" in obj || "url" in obj);
 }
 
 function isOAuthFlowObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && ('authorizationUrl' in obj || 'tokenUrl' in obj || 'scopes' in obj);
+  return (
+    obj &&
+    typeof obj === "object" &&
+    ("authorizationUrl" in obj || "tokenUrl" in obj || "scopes" in obj)
+  );
 }
 
 function isServerVariableObject(obj: any): boolean {
-    return obj && typeof obj === 'object' && ('enum' in obj || 'default' in obj);
+  return obj && typeof obj === "object" && ("enum" in obj || "default" in obj);
 }
 
 //#endregion
@@ -588,175 +827,207 @@ function isServerVariableObject(obj: any): boolean {
  * @param customExtensions Custom extension positions
  * @returns Comparison result
  */
-function sortKeys(a: string, b: string, standardKeys: readonly string[], customExtensions: Record<string, number> = {}): number {
-    const aCustomPos = customExtensions[a];
-    const bCustomPos = customExtensions[b];
+function sortKeys(
+  a: string,
+  b: string,
+  standardKeys: readonly string[],
+  customExtensions: Record<string, number> = {}
+): number {
+  const aCustomPos = customExtensions[a];
+  const bCustomPos = customExtensions[b];
 
-    // Get standard key positions
-    const aStandardIndex = standardKeys.indexOf(a);
-    const bStandardIndex = standardKeys.indexOf(b);
+  // Get standard key positions
+  const aStandardIndex = standardKeys.indexOf(a);
+  const bStandardIndex = standardKeys.indexOf(b);
 
-    // Both are custom extensions
-    if (aCustomPos !== undefined && bCustomPos !== undefined) {
-        return aCustomPos - bCustomPos;
+  // Both are custom extensions
+  if (aCustomPos !== undefined && bCustomPos !== undefined) {
+    return aCustomPos - bCustomPos;
+  }
+
+  // Both are standard keys
+  if (aStandardIndex !== -1 && bStandardIndex !== -1) {
+    return aStandardIndex - bStandardIndex;
+  }
+
+  // One is custom, one is standard
+  if (aCustomPos !== undefined && bStandardIndex !== -1) {
+    // Custom key should be positioned relative to standard keys
+    if (aCustomPos < bStandardIndex) {
+      return -1; // Custom key comes before this standard key
+    } else if (aCustomPos > bStandardIndex) {
+      return 1; // Custom key comes after this standard key
+    } else {
+      return -1; // Custom key comes before standard key at same position
     }
+  }
 
-    // Both are standard keys
-    if (aStandardIndex !== -1 && bStandardIndex !== -1) {
-        return aStandardIndex - bStandardIndex;
+  if (bCustomPos !== undefined && aStandardIndex !== -1) {
+    // Custom key should be positioned relative to standard keys
+    if (bCustomPos < aStandardIndex) {
+      return 1; // Custom key comes before this standard key
+    } else if (bCustomPos > aStandardIndex) {
+      return -1; // Custom key comes after this standard key
+    } else {
+      return 1; // Standard key comes after custom key at same position
     }
+  }
 
-    // One is custom, one is standard
-    if (aCustomPos !== undefined && bStandardIndex !== -1) {
-        // Custom key should be positioned relative to standard keys
-        if (aCustomPos < bStandardIndex) {
-            return -1; // Custom key comes before this standard key
-        } else if (aCustomPos > bStandardIndex) {
-            return 1; // Custom key comes after this standard key
-        } else {
-            return -1; // Custom key comes before standard key at same position
-        }
-    }
+  // One is standard, one is unknown
+  if (aStandardIndex !== -1) return -1; // Standard key comes first
+  if (bStandardIndex !== -1) return 1; // Standard key comes first
 
-    if (bCustomPos !== undefined && aStandardIndex !== -1) {
-        // Custom key should be positioned relative to standard keys
-        if (bCustomPos < aStandardIndex) {
-            return 1; // Custom key comes before this standard key
-        } else if (bCustomPos > aStandardIndex) {
-            return -1; // Custom key comes after this standard key
-        } else {
-            return 1; // Standard key comes after custom key at same position
-        }
-    }
+  // One is custom, one is unknown
+  if (aCustomPos !== undefined) return -1; // Custom key comes before unknown
+  if (bCustomPos !== undefined) return 1; // Custom key comes before unknown
 
-    // One is standard, one is unknown
-    if (aStandardIndex !== -1) return -1; // Standard key comes first
-    if (bStandardIndex !== -1) return 1; // Standard key comes first
-
-    // One is custom, one is unknown
-    if (aCustomPos !== undefined) return -1; // Custom key comes before unknown
-    if (bCustomPos !== undefined) return 1; // Custom key comes before unknown
-
-    // Both are unknown - sort alphabetically
-    return a.localeCompare(b);
+  // Both are unknown - sort alphabetically
+  return a.localeCompare(b);
 }
 //#endregion
 
 //#region Helper functions for custom extensions
 
 function getContextKey(path: string, obj: any): string {
-    // Determine the context based on path and object properties
-    if (path === 'info') return 'info';
-    if (path === 'components') return 'components';
-    if (path === 'servers' || path.startsWith('servers[')) return 'server';
-    if (path === 'tags' || path.startsWith('tags[')) return 'tag';
-    if (path === 'externalDocs') return 'externalDocs';
-    if (path === 'webhooks') return 'webhook';
-    if (path === 'definitions') return 'definitions';
-    if (path === 'securityDefinitions') return 'securityDefinitions';
+  // Determine the context based on path and object properties
+  if (path === "info") return "info";
+  if (path === "components") return "components";
+  if (path === "servers" || path.startsWith("servers[")) return "server";
+  if (path === "tags" || path.startsWith("tags[")) return "tag";
+  if (path === "externalDocs") return "externalDocs";
+  if (path === "webhooks") return "webhook";
+  if (path === "definitions") return "definitions";
+  if (path === "securityDefinitions") return "securityDefinitions";
 
-    // Check if this is a path operation (e.g., "paths./users.get")
-    if (path.includes('.') && path.split('.').length >= 3) {
-        const pathParts = path.split('.');
-        const lastPart = pathParts[pathParts.length - 1];
-        const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'];
-        if (httpMethods.includes(lastPart.toLowerCase())) {
-            return 'operation';
-        }
+  // Check if this is a path operation (e.g., "paths./users.get")
+  if (path.includes(".") && path.split(".").length >= 3) {
+    const pathParts = path.split(".");
+    const lastPart = pathParts[pathParts.length - 1];
+    const httpMethods = ["get", "post", "put", "patch", "delete", "head", "options", "trace"];
+    if (httpMethods.includes(lastPart.toLowerCase())) {
+      return "operation";
     }
+  }
 
-    // Handle nested paths for components
-    if (path.startsWith('components.')) {
-        if (path.includes('schemas.')) return 'schema';
-        if (path.includes('parameters.')) return 'parameter';
-        if (path.includes('responses.')) return 'response';
-        if (path.includes('securitySchemes.')) return 'securityScheme';
-        if (path.includes('requestBodies.')) return 'requestBody';
-        if (path.includes('headers.')) return 'header';
-        if (path.includes('examples.')) return 'example';
-        if (path.includes('links.')) return 'link';
-        if (path.includes('callbacks.')) return 'callback';
-        if (path.includes('pathItems.')) return 'pathItem';
-    }
+  // Handle nested paths for components
+  if (path.startsWith("components.")) {
+    if (path.includes("schemas.")) return "schema";
+    if (path.includes("parameters.")) return "parameter";
+    if (path.includes("responses.")) return "response";
+    if (path.includes("securitySchemes.")) return "securityScheme";
+    if (path.includes("requestBodies.")) return "requestBody";
+    if (path.includes("headers.")) return "header";
+    if (path.includes("examples.")) return "example";
+    if (path.includes("links.")) return "link";
+    if (path.includes("callbacks.")) return "callback";
+    if (path.includes("pathItems.")) return "pathItem";
+  }
 
-    // Handle nested paths for Swagger 2.0
-    if (path.startsWith('definitions.')) return 'definitions';
-    if (path.startsWith('securityDefinitions.')) return 'securityDefinitions';
+  // Handle nested paths for Swagger 2.0
+  if (path.startsWith("definitions.")) return "definitions";
+  if (path.startsWith("securityDefinitions.")) return "securityDefinitions";
 
-    // Handle nested paths for operations (parameters, responses, etc.)
-    if (path.includes('.parameters.') && path.split('.').length > 3) return 'parameter';
-    if (path.includes('.responses.') && path.split('.').length > 3) return 'response';
-    if (path.includes('.requestBody.')) return 'requestBody';
-    if (path.includes('.headers.')) return 'header';
-    if (path.includes('.examples.')) return 'example';
-    if (path.includes('.links.')) return 'link';
-    if (path.includes('.content.')) return 'mediaType';
-    if (path.includes('.encoding.')) return 'encoding';
-    if (path.includes('.discriminator.')) return 'discriminator';
-    if (path.includes('.xml.')) return 'xml';
-    if (path.includes('.contact.')) return 'contact';
-    if (path.includes('.license.')) return 'license';
-    if (path.includes('.flows.')) return 'oauthFlow';
-    if (path.includes('.variables.')) return 'serverVariable';
+  // Handle nested paths for operations (parameters, responses, etc.)
+  if (path.includes(".parameters.") && path.split(".").length > 3) return "parameter";
+  if (path.includes(".responses.") && path.split(".").length > 3) return "response";
+  if (path.includes(".requestBody.")) return "requestBody";
+  if (path.includes(".headers.")) return "header";
+  if (path.includes(".examples.")) return "example";
+  if (path.includes(".links.")) return "link";
+  if (path.includes(".content.")) return "mediaType";
+  if (path.includes(".encoding.")) return "encoding";
+  if (path.includes(".discriminator.")) return "discriminator";
+  if (path.includes(".xml.")) return "xml";
+  if (path.includes(".contact.")) return "contact";
+  if (path.includes(".license.")) return "license";
+  if (path.includes(".flows.")) return "oauthFlow";
+  if (path.includes(".variables.")) return "serverVariable";
 
-    // Check object types as fallback
-    // Only check for operation if path is not empty (not at root level)
-    // Root-level objects should not be detected as operations unless they're truly operations
-    // (handled separately in sortOpenAPIKeys for referenced operation files)
-    if (path && isOperationObject(obj)) return 'operation';
-    if (isParameterObject(obj)) return 'parameter';
-    if (isSchemaObject(obj)) return 'schema';
-    if (isResponseObject(obj)) return 'response';
-    if (isSecuritySchemeObject(obj)) return 'securityScheme';
-    if (isServerObject(obj)) return 'server';
-    if (isTagObject(obj)) return 'tag';
-    if (isExternalDocsObject(obj)) return 'externalDocs';
-    if (isWebhookObject(obj)) return 'webhook';
-    if (isPathItemObject(obj)) return 'pathItem';
-    if (isRequestBodyObject(obj)) return 'requestBody';
-    if (isMediaTypeObject(obj)) return 'mediaType';
-    if (isEncodingObject(obj)) return 'encoding';
-    if (isHeaderObject(obj)) return 'header';
-    if (isLinkObject(obj)) return 'link';
-    if (isExampleObject(obj)) return 'example';
-    if (isDiscriminatorObject(obj)) return 'discriminator';
-    if (isXMLObject(obj)) return 'xml';
-    if (isContactObject(obj)) return 'contact';
-    if (isLicenseObject(obj)) return 'license';
-    if (isOAuthFlowObject(obj)) return 'oauthFlow';
-    if (isServerVariableObject(obj)) return 'serverVariable';
+  // Check object types as fallback
+  // Only check for operation if path is not empty (not at root level)
+  // Root-level objects should not be detected as operations unless they're truly operations
+  // (handled separately in sortOpenAPIKeys for referenced operation files)
+  if (path && isOperationObject(obj)) return "operation";
+  if (isParameterObject(obj)) return "parameter";
+  if (isSchemaObject(obj)) return "schema";
+  if (isResponseObject(obj)) return "response";
+  if (isSecuritySchemeObject(obj)) return "securityScheme";
+  if (isServerObject(obj)) return "server";
+  if (isTagObject(obj)) return "tag";
+  if (isExternalDocsObject(obj)) return "externalDocs";
+  if (isWebhookObject(obj)) return "webhook";
+  if (isPathItemObject(obj)) return "pathItem";
+  if (isRequestBodyObject(obj)) return "requestBody";
+  if (isMediaTypeObject(obj)) return "mediaType";
+  if (isEncodingObject(obj)) return "encoding";
+  if (isHeaderObject(obj)) return "header";
+  if (isLinkObject(obj)) return "link";
+  if (isExampleObject(obj)) return "example";
+  if (isDiscriminatorObject(obj)) return "discriminator";
+  if (isXMLObject(obj)) return "xml";
+  if (isContactObject(obj)) return "contact";
+  if (isLicenseObject(obj)) return "license";
+  if (isOAuthFlowObject(obj)) return "oauthFlow";
+  if (isServerVariableObject(obj)) return "serverVariable";
 
-    return 'top-level';
+  return "top-level";
 }
 
 function getStandardKeysForContext(contextKey: string): readonly string[] {
-    switch (contextKey) {
-        case 'info': return InfoKeys;
-        case 'components': return ComponentsKeys;
-        case 'operation': return OperationKeys;
-        case 'parameter': return ParameterKeys;
-        case 'schema': return SchemaKeys;
-        case 'response': return ResponseKeys;
-        case 'securityScheme': return SecuritySchemeKeys;
-        case 'server': return ServerKeys;
-        case 'tag': return TagKeys;
-        case 'externalDocs': return ExternalDocsKeys;
-        case 'webhook': return WebhookKeys;
-        case 'pathItem': return PathItemKeys;
-        case 'requestBody': return RequestBodyKeys;
-        case 'mediaType': return MediaTypeKeys;
-        case 'encoding': return EncodingKeys;
-        case 'header': return HeaderKeys;
-        case 'link': return LinkKeys;
-        case 'example': return ExampleKeys;
-        case 'discriminator': return DiscriminatorKeys;
-        case 'xml': return XMLKeys;
-        case 'contact': return ContactKeys;
-        case 'license': return LicenseKeys;
-        case 'oauthFlow': return OAuthFlowKeys;
-        case 'serverVariable': return ServerVariableKeys;
-        case 'definitions': return SchemaKeys; // Definitions use schema keys
-        case 'securityDefinitions': return SecuritySchemeKeys; // Security definitions use security scheme keys
-        default: return RootKeys;
-    }
+  switch (contextKey) {
+    case "info":
+      return InfoKeys;
+    case "components":
+      return ComponentsKeys;
+    case "operation":
+      return OperationKeys;
+    case "parameter":
+      return ParameterKeys;
+    case "schema":
+      return SchemaKeys;
+    case "response":
+      return ResponseKeys;
+    case "securityScheme":
+      return SecuritySchemeKeys;
+    case "server":
+      return ServerKeys;
+    case "tag":
+      return TagKeys;
+    case "externalDocs":
+      return ExternalDocsKeys;
+    case "webhook":
+      return WebhookKeys;
+    case "pathItem":
+      return PathItemKeys;
+    case "requestBody":
+      return RequestBodyKeys;
+    case "mediaType":
+      return MediaTypeKeys;
+    case "encoding":
+      return EncodingKeys;
+    case "header":
+      return HeaderKeys;
+    case "link":
+      return LinkKeys;
+    case "example":
+      return ExampleKeys;
+    case "discriminator":
+      return DiscriminatorKeys;
+    case "xml":
+      return XMLKeys;
+    case "contact":
+      return ContactKeys;
+    case "license":
+      return LicenseKeys;
+    case "oauthFlow":
+      return OAuthFlowKeys;
+    case "serverVariable":
+      return ServerVariableKeys;
+    case "definitions":
+      return SchemaKeys; // Definitions use schema keys
+    case "securityDefinitions":
+      return SecuritySchemeKeys; // Security definitions use security scheme keys
+    default:
+      return RootKeys;
+  }
 }
