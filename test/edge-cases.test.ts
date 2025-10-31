@@ -1,18 +1,19 @@
 import { describe, expect, it } from 'bun:test';
 import prettier from 'prettier';
+import * as plugin from '../src/index.js';
 
 describe('Edge Cases and Coverage Improvement', () => {
   describe('Error Handling', () => {
     it('should handle non-object content gracefully', async () => {
       const stringResult = await prettier.format('"string"', {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       expect(stringResult.trim()).toBe('"string"');
 
       const numberResult = await prettier.format('123', {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       expect(numberResult.trim()).toBe('123');
     });
@@ -20,7 +21,7 @@ describe('Edge Cases and Coverage Improvement', () => {
     it('should handle array content gracefully', async () => {
       const result = await prettier.format('[1, 2, 3]', {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result.trim()).toBe('[1, 2, 3]');
@@ -41,7 +42,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -58,7 +59,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -75,7 +76,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -92,7 +93,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -109,7 +110,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -124,7 +125,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -140,7 +141,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -156,7 +157,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -172,7 +173,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -185,7 +186,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -201,7 +202,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -215,7 +216,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -233,7 +234,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -249,7 +250,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -265,7 +266,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -281,7 +282,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -297,7 +298,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -313,7 +314,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -329,7 +330,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -345,7 +346,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -362,7 +363,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -377,7 +378,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -393,7 +394,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -408,7 +409,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -428,7 +429,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -447,7 +448,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -465,7 +466,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -482,7 +483,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -497,7 +498,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -516,7 +517,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -530,7 +531,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -546,7 +547,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -564,7 +565,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -580,7 +581,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -597,7 +598,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -613,7 +614,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
@@ -631,7 +632,7 @@ describe('Edge Cases and Coverage Improvement', () => {
 
       const result = prettier.format(JSON.stringify(content), {
         parser: 'json',
-        plugins: ['.']
+        plugins: [plugin]
       });
       
       expect(result).toBeDefined();
