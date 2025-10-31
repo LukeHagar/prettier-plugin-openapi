@@ -156,6 +156,9 @@ export const OperationKeys = [
 ] as const;
 
 export const ParameterKeys = [
+    // $ref should always be at the top, because when its included there are at most 2 other keys that are present.
+    '$ref',
+
     // Important short info at a glance.
     'name',
     'description',
@@ -375,6 +378,9 @@ export const SchemaKeys = [
 ] as const;
 
 export const ResponseKeys = [
+    // $ref should always be at the top, because when its included there are at most 2 other keys that are present.
+    '$ref',
+
     // Description is a good at a glance key, and stays at the top.
     'description',
 
@@ -509,6 +515,9 @@ export const PathItemKeys = [
 
 // Simple/short first
 export const RequestBodyKeys = [
+    // $ref should always be at the top, because when its included there are at most 2 other keys that are present.
+    '$ref',
+    
     'description',
     'required',
     'content',
@@ -537,6 +546,9 @@ export const EncodingKeys = [
 ] as const;
 
 export const HeaderKeys = [
+    // $ref should always be at the top, because when its included there are at most 2 other keys that are present.
+    '$ref',
+    
     // Description is a good at a glance key, and stays at the top.
     'description',
     'required',
@@ -575,6 +587,9 @@ export const HeaderKeys = [
 ] as const;
 
 export const LinkKeys = [
+    // $ref should always be at the top, because when its included there are at most 2 other keys that are present.
+    '$ref',
+    
     'operationId',
     'description',
     'server',
