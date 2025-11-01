@@ -11,8 +11,11 @@ import {
   getDocumentBuilders,
   getDocumentConstants,
   getDocumentUtils,
+  // @ts-expect-error - No declaration file
 } from "./adapter-prettier-internals.js";
+// @ts-expect-error - No declaration file
 import { markdown as markdownParser } from "./parser-markdown.js";
+// @ts-expect-error - No declaration file
 import printer from "./printer-markdown.js";
 
 interface MarkdownFormatOptions {
