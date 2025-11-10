@@ -38,8 +38,9 @@ function createParse({ isMDX }) {
       .use(liquid)
       .use(isMDX ? htmlToJsx : noop)
       .use(wikiLink);
-    return processor.run(processor.parse(text));
+    return processor.runSync(processor.parse(text));
   };
+}
 }
 
 function noop() {}
