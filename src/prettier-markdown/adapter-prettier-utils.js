@@ -53,7 +53,7 @@ if (!utils) {
       const hasSingle = str.includes("'");
       const hasDouble = str.includes('"');
       if (hasSingle && !hasDouble) return '"';
-      return "'";
+      return '"';
     },
   };
 }

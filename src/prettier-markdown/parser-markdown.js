@@ -41,7 +41,6 @@ function createParse({ isMDX }) {
     return processor.runSync(processor.parse(text));
   };
 }
-}
 
 function noop() {}
 
