@@ -302,7 +302,7 @@ export const parsers: Record<string, Parser> = {
     },
     astFormat: "openapi-ast",
     locStart: (node: OpenAPINode) => 0,
-    locEnd: (node: OpenAPINode) => node.content?.length || 0,
+    locEnd: (_node: OpenAPINode, text: string) => text.length,
   },
 };
 
