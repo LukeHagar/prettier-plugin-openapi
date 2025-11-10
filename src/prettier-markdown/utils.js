@@ -160,7 +160,7 @@ function splitText(text) {
   return nodes;
 
   function appendNode(node) {
-    const lastNode = nodes.at(-1);
+    const lastNode = nodes[nodes.length - 1];
     if (
       lastNode?.type === "word" &&
       !isBetween(KIND_NON_CJK, KIND_CJK_PUNCTUATION) &&
