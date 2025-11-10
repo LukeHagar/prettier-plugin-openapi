@@ -24,20 +24,48 @@ import wikiLink from "./unified-plugins/wiki-link.js";
  * interface Sentence { children: Array<Word | Whitespace> }
  * interface InlineCode { children: Array<Sentence> }
  */
+// Memoized processors keyed by feature signature to avoid rebuilding pipelines
+const processorCache = new Map();
+
+function detectFeatures(text) {
+  // Cheap checks to decide whether to enable heavier plugins
+  const hasMath = /(\$\$|\\\[|\\\(|\$)/u.test(text);
+  const hasLiquid = /(\{\{|\{%)/u.test(text);
+  const hasWiki = /\[\[/u.test(text);
+  return { hasMath, hasLiquid, hasWiki };
+}
+
+function getProcessor({ isMDX, features }) {
+  const key = `${isMDX ? 1 : 0}:${features.hasMath ? 1 : 0}${features.hasLiquid ? 1 : 0}${features.hasWiki ? 1 : 0}`;
+  const cached = processorCache.get(key);
+  if (cached) {
+    return cached;
+  }
+
+  const processor = unified()
+    .use(remarkParse, {
+      commonmark: true,
+      ...(isMDX && { blocks: [BLOCKS_REGEX] }),
+    })
+    // inexpensive plugins first
+    .use(footnotes)
+    .use(frontMatter)
+    .use(isMDX ? esSyntax : noop)
+    // conditional heavy plugins
+    .use(features.hasMath ? remarkMath : noop)
+    .use(features.hasLiquid ? liquid : noop)
+    // html -> jsx only matters in MDX
+    .use(isMDX ? htmlToJsx : noop)
+    .use(features.hasWiki ? wikiLink : noop);
+
+  processorCache.set(key, processor);
+  return processor;
+}
+
 function createParse({ isMDX }) {
   return (text) => {
-    const processor = unified()
-      .use(remarkParse, {
-        commonmark: true,
-        ...(isMDX && { blocks: [BLOCKS_REGEX] }),
-      })
-      .use(footnotes)
-      .use(frontMatter)
-      .use(remarkMath)
-      .use(isMDX ? esSyntax : noop)
-      .use(liquid)
-      .use(isMDX ? htmlToJsx : noop)
-      .use(wikiLink);
+    const features = detectFeatures(text);
+    const processor = getProcessor({ isMDX, features });
     return processor.runSync(processor.parse(text));
   };
 }
