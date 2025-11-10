@@ -1,6 +1,5 @@
 import * as yaml from "js-yaml";
 import type { AstPath, Doc, Parser, ParserOptions, Printer, SupportLanguage } from "prettier";
-import prettier from "prettier";
 import { getVendorExtensions } from "./extensions/vendor-loader.js";
 
 export type PrintFn = (path: AstPath) => Doc;
@@ -321,8 +320,10 @@ export const printers: Record<string, Printer> = {
 };
 
 /**
- * Formats markdown strings using Prettier's markdown formatter
- * Since Prettier plugins must be synchronous, we access Prettier's internal formatting APIs
+ * Formats markdown strings using Prettier's markdown parser and printer
+ *
+ * This uses Prettier's actual markdown formatting implementation, ensuring
+ * that markdown in OpenAPI descriptions is formatted exactly as Prettier would format it.
  */
 function formatMarkdownSync(markdown: string, options?: OpenAPIPluginOptions): string {
   if (!markdown || typeof markdown !== "string") {
@@ -341,100 +342,21 @@ function formatMarkdownSync(markdown: string, options?: OpenAPIPluginOptions): s
   }
 
   try {
-    const prettierInstance = prettier as any;
-
-    // Try multiple approaches to access Prettier's markdown formatting
-    // Approach 1: Try formatDocument (internal API)
-    if (prettierInstance.formatDocument) {
-      try {
-        const formatted = prettierInstance.formatDocument(trimmed, {
-          parser: "markdown",
-          printWidth: options?.printWidth || 80,
-          tabWidth: options?.tabWidth || 2,
-          proseWrap: "preserve",
-        });
-        return formatted.trimEnd();
-      } catch {
-        // Fall through to next approach
-      }
-    }
-
-    // Approach 2: Try to access Prettier's markdown formatting synchronously
-    // Since Prettier.format is async, we need to find a sync way to format markdown
-    // Prettier's internal APIs might not expose sync formatting, so we'll need to
-    // either use a sync wrapper or do intelligent normalization
-
-    // Try using Prettier's format through require (if available in sync context)
-    try {
-      const prettierModule = require("prettier");
-
-      // Check if there's a synchronous formatting method
-      // Prettier 3.x might expose different APIs
-      if (prettierModule.__internal?.markdown?.formatSync) {
-        const formatted = prettierModule.__internal.markdown.formatSync(trimmed, {
-          printWidth: options?.printWidth || 80,
-          tabWidth: options?.tabWidth || 2,
-          proseWrap: "preserve",
-        });
-        return formatted.trimEnd();
-      }
-
-      // Try accessing Prettier's internal formatting through utils
-      if (prettierModule.__internal?.utils) {
-        const utils = prettierModule.__internal.utils;
-        // Check if there's a sync formatter in utils
-        // This is a best-effort attempt to use Prettier's formatting
-      }
-    } catch {
-      // Prettier's internal APIs may not be accessible or may not be sync
-      // Fall through to manual formatting
-    }
-
-    // Approach 3: Manual markdown formatting
-    // Since Prettier.format is async and plugins must be sync,
-    // we do intelligent markdown normalization that matches Prettier's style
-    let formatted = trimmed;
-
-    // Normalize line breaks (preserve intentional double line breaks)
-    formatted = formatted.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-
-    // Normalize multiple blank lines to maximum of 2 (preserve paragraph breaks)
-    formatted = formatted.replace(/\n{3,}/g, "\n\n");
-
-    // Process each line
-    const lines = formatted.split("\n");
-    const processedLines = lines.map((line) => {
-      // Preserve code block indentation (lines starting with 4+ spaces or tabs)
-      if (/^[\t ]{4,}/.test(line)) {
-        // Code block - preserve but normalize trailing whitespace
-        return line.trimEnd();
-      }
-
-      // For regular lines, normalize multiple spaces to single spaces
-      // But preserve intentional formatting (like tables, lists with specific spacing)
-      // First, trim trailing whitespace
-      let processed = line.trimEnd();
-
-      // Normalize multiple spaces to single space, but preserve:
-      // - Multiple spaces at start (indentation for nested lists)
-      // - Patterns that look intentional (like markdown tables)
-      if (!/^[\s]*\|/.test(processed) && !/^[\s]*[-*+]\s{2,}/.test(processed)) {
-        // Not a table or list, normalize spaces
-        processed = processed.replace(/[ \t]+/g, " ");
-      }
-
-      return processed;
+    // Use Prettier's markdown formatter
+    // Dynamic require to avoid issues during build
+    const formatModule = require("./prettier-markdown/format-markdown.js");
+    const formatted = formatModule.formatMarkdown(trimmed, {
+      printWidth: options?.printWidth || 80,
+      tabWidth: options?.tabWidth || 2,
+      proseWrap: "preserve",
+      singleQuote: false,
     });
-
-    formatted = processedLines.join("\n");
-
-    // Remove trailing newline if we added one (we want YAML to control formatting)
-    formatted = formatted.trimEnd();
 
     return formatted;
   } catch (error) {
-    // If markdown formatting fails, return original string
-    return markdown;
+    // If Prettier's formatter fails, fall back to basic normalization
+    // This ensures we always return valid markdown
+    return trimmed;
   }
 }
 
