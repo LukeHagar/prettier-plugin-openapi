@@ -44,14 +44,14 @@ describe("Markdown Formatting in Descriptions", () => {
         throw new Error("Result is undefined");
       }
 
-      const resultString = result.toString();
+      const resultString = String(result);
 
       // Check that multiple spaces are normalized in the original content
       // Note: YAML may format this differently, but the content should be processed
       // The description field should exist and be formatted
       expect(resultString).toContain("description:");
 
-      // Check that multiple blank lines are normalized
+      // Check that multiple blank lines are normalized (no quad-blank-lines)
       expect(resultString).not.toMatch(/\n{4,}/);
     });
 
@@ -79,7 +79,7 @@ describe("Markdown Formatting in Descriptions", () => {
         throw new Error("Result is undefined");
       }
 
-      const resultString = result.toString();
+      const resultString = String(result);
 
       // Code blocks (4+ spaces) should be preserved
       expect(resultString).toContain("    const x = 1;");
@@ -127,7 +127,7 @@ describe("Markdown Formatting in Descriptions", () => {
         throw new Error("Result is undefined");
       }
 
-      const resultString = result.toString();
+      const resultString = String(result);
 
       // Both parameter and response descriptions should be formatted
       expect(resultString).toContain("description:");
@@ -167,7 +167,7 @@ describe("Markdown Formatting in Descriptions", () => {
         throw new Error("Result is undefined");
       }
 
-      const resultString = result.toString();
+      const resultString = String(result);
 
       // Summary fields should be processed
       expect(resultString).toContain("summary:");

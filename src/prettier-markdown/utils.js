@@ -186,9 +186,17 @@ function getOrderedListItemInfo(orderListItem, options) {
     orderListItem.position.end.offset,
   );
 
-  const { numberText, leadingSpaces } = text.match(
+  const m = text.match(
     /^\s*(?<numberText>\d+)(\.|\))(?<leadingSpaces>\s*)/u,
-  ).groups;
+  );
+  
+  if (!m) {
+    throw new Error(
+      `Failed to parse ordered list item: expected pattern matching /^\\s*(?<numberText>\\d+)(\\.|\\))(?<leadingSpaces>\\s*)/u, but got: ${JSON.stringify(text)}`,
+    );
+  }
+  
+  const { numberText, leadingSpaces } = m.groups;
 
   return { number: Number(numberText), leadingSpaces };
 }

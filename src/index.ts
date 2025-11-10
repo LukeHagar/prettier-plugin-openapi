@@ -136,7 +136,7 @@ function isOpenAPIFile(content: any, filePath?: string): boolean {
   }
 
   // Check file path patterns for common OpenAPI file structures
-  // Only accept files in OpenAPI-related directories
+  // Only accept files in OpenAPI-related directories, but validate content first
   if (filePath) {
     const path = filePath.toLowerCase();
 
@@ -155,7 +155,33 @@ function isOpenAPIFile(content: any, filePath?: string): boolean {
       path.includes("/webhooks/") ||
       path.includes("/paths/")
     ) {
-      return true;
+      // Fast-path: if filepath matches, still validate content to prevent
+      // generic JSON from being misclassified as OpenAPI
+      const keys = Object.keys(content);
+      const hasOnlyGenericProperties = keys.every(
+        (key) =>
+          !key.startsWith("x-") && // Not a custom extension
+          ![
+            "openapi",
+            "swagger",
+            "info",
+            "paths",
+            "components",
+            "definitions",
+            "parameters",
+            "responses",
+            "securityDefinitions",
+            "tags",
+            "servers",
+            "webhooks",
+          ].includes(key)
+      );
+
+      // Only accept if content doesn't have only generic properties
+      if (!hasOnlyGenericProperties) {
+        return true;
+      }
+      // If it has only generic properties, fall through to continue validation
     }
   }
 

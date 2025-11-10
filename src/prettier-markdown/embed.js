@@ -4,10 +4,17 @@ import getMaxContinuousCount from "../utils/get-max-continuous-count.js";
 import inferParser from "../utils/infer-parser.js";
 import { getFencedCodeBlockValue } from "./utils.js";
 
+// Skip embedding extremely large code blocks to avoid expensive formatting passes
+const MAX_EMBED_CODE_SIZE = 32 * 1024; // 32KB
+
 function embed(path, options) {
   const { node } = path;
 
   if (node.type === "code" && node.lang !== null) {
+    // Fast path: large code blocks are printed as-is without embedding
+    if (typeof node.value === "string" && node.value.length > MAX_EMBED_CODE_SIZE) {
+      return null;
+    }
     const parser = inferParser(options, { language: node.lang });
     if (parser) {
       return async (textToDoc) => {
