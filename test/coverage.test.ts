@@ -1265,6 +1265,40 @@ type: string`;
       expect(result?.isOpenAPI).toBeFalse();
     });
 
+    it('should reject generic content in component directories (security check)', () => {
+      const parser = parsers?.['openapi-parser'];
+      expect(parser).toBeDefined();
+
+      // Generic JSON/YAML that should NOT be accepted even in component directories
+      const genericContent = `firstName: John
+lastName: Doe
+email: john@example.com
+age: 30`;
+
+      // Test various component directory paths
+      const componentPaths = [
+        'components/schemas/User.yaml',
+        'components/parameters/UserId.yaml',
+        'components/responses/UserResponse.yaml',
+        'components/requestBodies/UserCreate.yaml',
+        'components/headers/RateLimit.yaml',
+        'components/examples/UserExample.yaml',
+        'components/securitySchemes/BearerAuth.yaml',
+        'components/links/UserLink.yaml',
+        'components/callbacks/NewMessageCallback.yaml',
+        'webhooks/messageCreated.yaml',
+        'paths/users.yaml',
+      ];
+
+      componentPaths.forEach((path) => {
+        // @ts-expect-error We are testing edge cases
+        const result = parser?.parse(genericContent, { filepath: path });
+        expect(result).toBeDefined();
+        // Should be rejected even though path matches component directory pattern
+        expect(result?.isOpenAPI).toBeFalse();
+      });
+    });
+
     it('should handle response code sorting with mixed numeric and non-numeric codes', () => {
       const printer = printers?.['openapi-ast'];
       expect(printer).toBeDefined();

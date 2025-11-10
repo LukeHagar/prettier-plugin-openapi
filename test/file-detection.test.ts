@@ -159,17 +159,40 @@ city: New York`;
         expect(parsedData?.isOpenAPI).toBeFalse();
     });
 
-    it('should accept files in OpenAPI directories even with simple content', () => {
+    it('should reject generic content in OpenAPI component directories', () => {
         const parser = parsers?.['openapi-parser'];
         expect(parser).toBeDefined();
 
-        const simpleYaml = `name: John
+        // Generic content that doesn't match OpenAPI structure
+        const genericYaml = `name: John
 age: 30
 city: New York`;
 
         // @ts-expect-error We are mocking things here
-        const result = parser?.parse(simpleYaml, { filepath: 'components/schemas/User.yaml' });
+        const result = parser?.parse(genericYaml, { filepath: 'components/schemas/User.yaml' });
         expect(result).toBeDefined();
+        // Should be rejected even though it's in a component directory
+        expect(result?.isOpenAPI).toBeFalse();
+        // Format may be undefined when isOpenAPI is false
+        // The important thing is that it's rejected
+    });
+
+    it('should accept valid OpenAPI content in component directories', () => {
+        const parser = parsers?.['openapi-parser'];
+        expect(parser).toBeDefined();
+
+        // Valid schema content in component directory
+        const schemaYaml = `type: object
+properties:
+  name:
+    type: string
+  age:
+    type: integer`;
+
+        // @ts-expect-error We are mocking things here
+        const result = parser?.parse(schemaYaml, { filepath: 'components/schemas/User.yaml' });
+        expect(result).toBeDefined();
+        // Should be accepted because content is valid OpenAPI schema
         expect(result?.isOpenAPI).toBeTrue();
         expect(result?.format).toBe('yaml');
     });
